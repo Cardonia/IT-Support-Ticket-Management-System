@@ -39,3 +39,4 @@
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/5f4iolt2q2-{0}-62xihxwl9b-62xihxwl9b.gz
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/pvttjmsgn7-{0}-gno6xb429u-gno6xb429u.gz
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/pltsm4q419-{0}-oghbe9qcyv-oghbe9qcyv.gz
+/home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/first.sourcelink.json

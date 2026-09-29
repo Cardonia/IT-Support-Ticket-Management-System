@@ -1,135 +1,105 @@
-
 using Npgsql;
-using System.Security.Cryptography;
-using System.Text;
 
 public static class AuthenticationMiddleware
 {
-    public static void UseAuthenticationMiddleware(
-        this WebApplication app)
+    // Public static assets: no DB lookup, no auth
+    static readonly string[] PublicAssetFolders = { "/css", "/js", "/img", "/fonts" };
+    static readonly HashSet<string> PublicAssetFiles = new(StringComparer.OrdinalIgnoreCase)
     {
-        var connectionString =
-            "Host=localhost;Port=5432;Database=it_db;Username=admin;Password=123";
+        "/style.css", "/script.js", "/favicon.ico"
+    };
 
+    // Pages only for guests: logged-in users are sent to /home.html
+    static readonly HashSet<string> GuestPages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "/", "/index.html", "/login.html", "/register.html"
+    };
+
+    // API routes reachable without a session
+    static readonly string[] PublicApi = { "/api/login", "/api/register", "/api/logout" };
+
+    public static void UseAuthenticationMiddleware(this WebApplication app)
+    {
         app.Use(async (context, next) =>
         {
-            Console.WriteLine("user url request: " + context.Request.Path);
-
             var path = context.Request.Path;
 
-            // GET SESSION FROM BROWSER
-            var session = context.Request.Cookies["session"];
-            bool validSession = false;
-
-            // CHECK SESSION
-            if (!string.IsNullOrEmpty(session))
+            // 1) Public assets: skip everything (no DB hit)
+            if (IsPublicAsset(path))
             {
-                string sessionHash = Convert.ToHexString(
-                    SHA256.HashData(
-                        Encoding.UTF8.GetBytes(session)
-                    )
-                );
+                await next();
+                return;
+            }
 
-                using var connection =
-                    new NpgsqlConnection(connectionString);
+            // 2) Resolve the session (if any) and attach the user to the request
+            SessionUser? user = null;
+            var token = context.Request.Cookies[AuthHelpers.CookieName];
 
-                connection.Open();
-
-                string sql = """
-                    SELECT COUNT(*)
-                    FROM users
-                    WHERE session = @session
-                    """;
-
-                using var command =
-                    new NpgsqlCommand(sql, connection);
-
-                command.Parameters.AddWithValue(
-                    "session",
-                    sessionHash
-                );
-
-                int count =
-                    Convert.ToInt32(
-                        command.ExecuteScalar()
-                    );
-
-                if (count > 0)
+            if (!string.IsNullOrEmpty(token))
+            {
+                try
                 {
-                    validSession = true;
-                    
+                    var db = context.RequestServices.GetRequiredService<NpgsqlDataSource>();
+                    user = await AuthHelpers.FindUserAsync(db, token, context.RequestAborted);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    app.Logger.LogError(ex, "Session lookup failed");
+                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    await context.Response.WriteAsync("Service temporarily unavailable.");
+                    return;
                 }
             }
 
-            Console.WriteLine("auth: "+validSession);
+            if (user is not null)
+            {
+                context.User = user.ToPrincipal();   // endpoints can now know who is calling
+            }
 
-            // ROOT PAGE
-            if (path == "/" || path == "/index.html")
+            bool validSession = user is not null;
+
+            // 3) Guest-only pages
+            if (GuestPages.Contains(path.Value ?? "/"))
             {
                 if (validSession)
                 {
                     context.Response.Redirect("/home.html");
-                    Console.WriteLine("/ : user session exit and redirect to /home");
                     return;
                 }
-
                 await next();
                 return;
             }
 
-            // LOGIN / REGISTER PAGES
-            if (path == "/login.html" ||
-                path == "/register.html")
-            {
-                if (validSession)
-                {
-                    context.Response.Redirect("/home.html");
-                    Console.WriteLine("login/register : user session exit and redirect to /home");
-                    return;
-                }
-
-                await next();
-                return;
-            }
-
-
-            // --------------------------------
-            // LOGIN / REGISTER API
-            // --------------------------------
-
-            if (path.StartsWithSegments("/api/login") ||
-                path.StartsWithSegments("/api/register"))
+            // 4) Public API (login / register / logout)
+            if (PublicApi.Any(p => path.StartsWithSegments(p)))
             {
                 await next();
                 return;
             }
 
-
-            // --------------------------------
-            // PUBLIC FILES
-            // --------------------------------
-
-            if (path == "/style.css" ||
-                path == "/script.js" ||
-                path == "/index.html")
-            {
-                await next();
-                return;
-            }
-
-
-            // --------------------------------
-            // PROTECTED PAGES
-            // --------------------------------
-
+            // 5) Everything else needs a valid session
             if (!validSession)
             {
-                context.Response.Redirect("/");
+                if (path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await context.Response.WriteAsJsonAsync(new { error = "Not authenticated." });
+                }
+                else
+                {
+                    context.Response.Redirect("/");
+                }
                 return;
             }
 
-            // Valid session → allow request
+            // Don't let the back button show protected pages after logout
+            context.Response.Headers.CacheControl = "no-store";
+
             await next();
         });
     }
+
+    static bool IsPublicAsset(PathString path) =>
+        PublicAssetFiles.Contains(path.Value ?? "") ||
+        PublicAssetFolders.Any(f => path.StartsWithSegments(f));
 }

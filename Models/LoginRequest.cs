@@ -1,5 +1,1 @@
-class LoginRequest
-{
-    public string username { get; set; }
-    public string password { get; set; }
-}
+public record LoginRequest(string? Username, string? Password);
