@@ -1,20 +1,25 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <div class="welcome-box">
+    <div class="register-box">
 
-        <h2 id="greeting"></h2>
+        <h2>Login</h2>
 
-        <p>main page daddy</p>
+        <input id="username" type="text" placeholder="Username">
 
-        <button onclick="logout()">Logout</button>
+        <input id="password" type="password" placeholder="Password">
+
+        <button onclick="login()">Login</button>
 
         <p id="message"></p>
 
@@ -23,4 +28,5 @@
     <script src="script.js"></script>
 
 </body>
+
 </html>

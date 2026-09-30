@@ -35,8 +35,9 @@
 /home/Light/Development/ASP NET Projects/first/bin/Debug/net10.0/Npgsql.dll
 /home/Light/Development/ASP NET Projects/first/bin/Debug/net10.0/BCrypt-Net-Next.dll
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/ip6ieyjof6-{0}-gr78iuadzj-gr78iuadzj.gz
-/home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/idq41qgvx5-{0}-y9wdul1jio-y9wdul1jio.gz
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/5f4iolt2q2-{0}-62xihxwl9b-62xihxwl9b.gz
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/pvttjmsgn7-{0}-gno6xb429u-gno6xb429u.gz
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/pltsm4q419-{0}-oghbe9qcyv-oghbe9qcyv.gz
 /home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/first.sourcelink.json
+/home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/1gbj2xqu4h-{0}-lyj91e39cp-lyj91e39cp.gz
+/home/Light/Development/ASP NET Projects/first/obj/Debug/net10.0/compressed/idq41qgvx5-{0}-bzrl34wv60-bzrl34wv60.gz
