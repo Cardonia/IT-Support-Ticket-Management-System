@@ -49,7 +49,7 @@ public static class AuthEndpoints
             {
                 await using var cmd = new NpgsqlCommand("""
                     INSERT INTO users (first_name, password, role)
-                    VALUES (@first_name, @password, 'guest')
+                    VALUES (@first_name, @password, 'Employee')
                     RETURNING id
                     """, conn, tx);
                 cmd.Parameters.AddWithValue("first_name", username);

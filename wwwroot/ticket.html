@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="welcome-box">
+
+        <h2 id="ticket-title"></h2>
+
+        <p id="ticket-description" class="ticket-description"></p>
+
+        <ul id="ticket-details" class="ticket-list"></ul>
+
+        <button id="take-button" onclick="takeTicket()" hidden>Take Ticket</button>
+
+        <button id="resolve-button" onclick="resolveTicket()" hidden>Mark Resolved</button>
+
+        <a href="/home.html" class="button">Back</a>
+
+        <p id="message"></p>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

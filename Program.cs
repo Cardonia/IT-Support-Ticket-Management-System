@@ -42,5 +42,6 @@ app.UseStaticFiles();
 app.UseRateLimiter();
 
 app.MapAuthEndpoints();
+app.MapTicketEndpoints();
 
 app.Run();

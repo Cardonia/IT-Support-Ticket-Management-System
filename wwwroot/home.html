@@ -12,7 +12,23 @@
 
         <h2 id="greeting"></h2>
 
-        <p>main page daddy</p>
+        <h3 id="section-title"></h3>
+
+        <div id="filter-box" hidden>
+            <label for="status-filter">Status</label>
+            <select id="status-filter" onchange="filterTickets()">
+                <option value="">All</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+            </select>
+        </div>
+
+        <ul id="ticket-list" class="ticket-list"></ul>
+
+        <p id="section-empty"></p>
+
+        <a id="create-ticket-link" href="/create-ticket.html" class="button" hidden>Create Ticket</a>
 
         <button onclick="logout()">Logout</button>
 

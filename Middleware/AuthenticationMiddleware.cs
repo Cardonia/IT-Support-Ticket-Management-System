@@ -61,6 +61,11 @@ public static class AuthenticationMiddleware
             // 3) Guest-only pages
             if (GuestPages.Contains(path.Value ?? "/"))
             {
+                // The answer depends on the cookie (page vs redirect), so the browser must
+                // never reuse a cached copy, otherwise the first visit after logging in
+                // can show the old guest page from cache.
+                context.Response.Headers.CacheControl = "no-store";
+
                 if (validSession)
                 {
                     context.Response.Redirect("/home.html");

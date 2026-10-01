@@ -46,7 +46,7 @@ public static class AuthHelpers
         return new SessionUser(
             Convert.ToInt64(reader.GetValue(0)),
             reader.GetString(1),
-            reader.IsDBNull(2) ? "guest" : reader.GetString(2));
+            reader.IsDBNull(2) ? "Employee" : reader.GetString(2));
     }
 
     public static async Task<(string Token, DateTime ExpiresAt)> CreateSessionAsync(

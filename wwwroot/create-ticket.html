@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Ticket</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="register-box">
+
+        <h2>Create Ticket</h2>
+
+        <label for="title">Title</label>
+        <input id="title" type="text" maxlength="100" placeholder="Short summary">
+
+        <label for="description">Description</label>
+        <textarea id="description" rows="5" maxlength="2000" placeholder="What is the problem?"></textarea>
+
+        <label for="priority">Priority</label>
+        <select id="priority">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+        </select>
+
+        <button id="submit-ticket" onclick="createTicket()">Submit</button>
+
+        <a href="/home.html" class="button">Back</a>
+
+        <p id="message"></p>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
