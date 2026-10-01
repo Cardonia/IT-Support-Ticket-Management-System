@@ -15,13 +15,24 @@
 
         <h2>Login</h2>
 
-        <input id="username" type="text" placeholder="Username">
+        <!-- Same pattern as register.html. novalidate: script.js shows the messages. script.js listens for
+             the submit event (no inline handler: the Content-Security-Policy forbids inline script).
+             method="post": if script.js ever fails to load, the browser sends the form as a POST (the
+             server refuses it with 403) instead of a GET that would put the password in the URL. -->
+        <form id="login-form" method="post" novalidate>
 
-        <input id="password" type="password" placeholder="Password">
+            <label for="username">Username</label>
+            <input id="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off"
+                spellcheck="false">
 
-        <button onclick="login()">Login</button>
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password">
 
-        <p id="message"></p>
+            <button id="login-button" type="submit">Login</button>
+
+            <p id="message" role="alert"></p>
+
+        </form>
 
     </div>
 

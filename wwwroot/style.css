@@ -177,12 +177,38 @@ textarea {
 
 }
 
-.ticket-description {
+.ticket-description,
+.note-body {
 
     text-align: left;
 
     white-space: pre-wrap;
 
     overflow-wrap: anywhere;
+
+}
+
+.note-body {
+
+    margin: 4px 0 0;
+
+}
+
+/* register form: short rule under a field, and error text that stands out */
+.field-hint {
+
+    margin: 0;
+
+    font-size: 12px;
+
+    color: #777;
+
+    text-align: left;
+
+}
+
+.error {
+
+    color: #b00020;
 
 }

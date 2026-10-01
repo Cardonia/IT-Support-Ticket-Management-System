@@ -1,9 +1,10 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,15 +15,30 @@
 
         <h2>Register</h2>
 
-        <input id="username" type="text" placeholder="Username">
+        <!-- novalidate: script.js shows the same messages the server would (one source of wording).
+             script.js listens for the submit event (no inline handler: the Content-Security-Policy
+             forbids inline script). method="post": if script.js ever fails to load, the browser sends
+             the form as a POST (the server refuses it with 403) instead of a GET that would put the
+             password in the URL. -->
+        <form id="register-form" method="post" novalidate>
 
-        <input id="password" type="password" placeholder="Password">
+            <label for="username">Username</label>
+            <input id="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off"
+                spellcheck="false" aria-describedby="username-hint">
+            <p id="username-hint" class="field-hint">4-14 characters: letters, numbers or underscore.</p>
 
-        <input id="repassword" type="password" placeholder="Re-enter Password">
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="new-password" aria-describedby="password-hint">
+            <p id="password-hint" class="field-hint">At least 8 characters.</p>
 
-        <button onclick="register()">Register</button>
+            <label for="repassword">Re-enter password</label>
+            <input id="repassword" type="password" autocomplete="new-password">
 
-        <p id="message"></p>
+            <button id="register-button" type="submit">Register</button>
+
+            <p id="message" role="alert"></p>
+
+        </form>
 
     </div>
 

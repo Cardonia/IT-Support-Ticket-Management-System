@@ -19,9 +19,27 @@
 
         <ul id="ticket-details" class="ticket-list"></ul>
 
-        <button id="take-button" onclick="takeTicket()" hidden>Take Ticket</button>
+        <button id="take-button" hidden>Take Ticket</button>
 
-        <button id="resolve-button" onclick="resolveTicket()" hidden>Mark Resolved</button>
+        <button id="resolve-button" hidden>Mark Resolved</button>
+
+        <div id="notes-box" hidden>
+
+            <h3>Notes</h3>
+
+            <ul id="note-list" class="ticket-list"></ul>
+
+            <p id="notes-empty"></p>
+
+        </div>
+
+        <div id="note-form" hidden>
+
+            <textarea id="note-body" rows="4" maxlength="2000" placeholder="Write a note"></textarea>
+
+            <button id="note-button">Add Note</button>
+
+        </div>
 
         <a href="/home.html" class="button">Back</a>
 

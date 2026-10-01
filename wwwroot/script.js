@@ -1,58 +1,73 @@
+// Removes the same characters as C#'s string.Trim(), which the server uses on the username.
+// (JavaScript's own trim() differs in two characters: it also strips U+FEFF and keeps U+0085.)
+function trimLikeServer(text) {
+    return text.replace(/^[\t-\r \u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t-\r \u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g, "");
+}
+
+// The register rules, word for word the same as the server's (AuthEndpoints.Validate), in the same order.
+// Returns null when everything is fine, otherwise { field, text } (the field to focus and the message).
+// The server stays the authority: this only saves a round trip and gives the same message sooner.
+function checkRegisterForm(username, password, repassword) {
+    username = trimLikeServer(username);               // the server trims the username too
+
+    if (!/^[A-Za-z0-9_]{4,14}$/.test(username))
+        return { field: "username", text: "Username must be 4-14 characters: letters, numbers or underscore." };
+
+    if (password.length < 8)                           // .length counts UTF-16 units, like C#'s string.Length
+        return { field: "password", text: "Password must be at least 8 characters." };
+
+    if (new TextEncoder().encode(password).length > 72)   // bcrypt only reads the first 72 bytes
+        return { field: "password", text: "Password is too long (max 72 bytes)." };
+
+    if (password !== repassword)                       // the only rule the server cannot check (it never sees the 2nd box)
+        return { field: "repassword", text: "Passwords do not match." };
+
+    return null;
+}
+
+// register.html: runs when the form is submitted (button click or Enter key)
 async function register() {
+    const button = document.getElementById("register-button");
+    const message = document.getElementById("message");
+    if (button.disabled) return;                       // one request at a time
 
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("password").value;
-    let repassword = document.getElementById("repassword").value;
+    const username = trimLikeServer(document.getElementById("username").value);
+    const password = document.getElementById("password").value;
+    const repassword = document.getElementById("repassword").value;
 
-    let message = document.getElementById("message");
+    message.className = "";
+    message.textContent = "";
 
-    // Check username
-    if (username.length <= 3 || username.length >= 15) {
-        message.textContent = "Username must be 4-14 characters.";
+    const problem = checkRegisterForm(username, password, repassword);
+    if (problem) {
+        message.className = "error";
+        message.textContent = problem.text;
+        document.getElementById(problem.field).focus();
         return;
     }
 
-    // Check password
-    if (password.length === 0) {
-        message.textContent = "Please write a password.";
-        return;
-    }
+    button.disabled = true;
+    let leaving = false;
+    try {
+        const res = await api("/api/register", {
+            method: "POST",
+            body: { username, password },
+            redirectOn401: false                       // register never answers 401; never bounce this page
+        });
 
-    if (password.length <= 7 || password.length >= 16) {
-        message.textContent = "Password must be 8-15 characters.";
-        return;
-    }
+        if (res.ok) {
+            leaving = true;                            // the cookie is already set by the response
+            window.location.href = "/home.html";
+            return;
+        }
 
-    // Check passwords
-    if (password !== repassword) {
-        message.textContent = "Passwords do not match.";
-        return;
-    }
-
-    // Send data to ASP.NET
-    const response = await fetch("/api/register", {
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-            username: username,
-            password: password
-        })
-    });
-
-    // Read server response
-    const result = await response.text();
-
-    // Show server message
-    message.textContent = result;
-
-    if (response.ok) {
-    window.location.href = "/home.html";
-    } else {
-        message.textContent = result;
+        message.className = "error";
+        message.textContent = res.message;             // plain text from the server (no quotes), e.g. 409 / 429 / 500
+    } catch {
+        message.className = "error";
+        message.textContent = "Network error. Please try again.";
+    } finally {
+        if (!leaving) button.disabled = false;         // stays disabled while the page changes
     }
 }
 
@@ -69,55 +84,16 @@ async function readMessage(res) {
     }
 }
 
-async function login() {
-    const message = document.getElementById("message");
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    try {
-        const res = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-
-        if (res.ok) {
-            window.location.href = "/home.html";
-            return;
-        }
-
-        message.textContent = await readMessage(res);
-    } catch {
-        message.textContent = "Network error. Please try again.";
-    }
-}
-
-
-async function logout() {
-    const message = document.getElementById("message");
-
-    try {
-        const res = await fetch("/api/logout", { method: "POST" });
-
-        if (res.ok) {
-            window.location.href = "/";
-            return;
-        }
-
-        message.textContent = await readMessage(res);
-    } catch {
-        message.textContent = "Network error. Please try again.";
-    }
-}
-
-
-// Shared fetch helper: JSON in, JSON out, clean error messages.
+// Shared fetch helper: JSON in, JSON out, clean error messages. Every request in this app goes through it.
 // Returns { ok, status, data } on success or { ok: false, status, message } on failure.
 // A 401 sends the user to "/" (session expired or logged out elsewhere).
 // Pass redirectOn401: false for calls where 401 is an expected answer (e.g. wrong password).
 // Network failures throw, so callers wrap it in try/catch.
+// It adds "X-Requested-With: fetch" to every request. The server (CsrfMiddleware.cs) refuses every
+// POST / PATCH / DELETE without it: a page on another site cannot add this header, so it cannot
+// make the browser send a request the server accepts, even though the cookie would travel with it.
 async function api(url, { method = "GET", body, redirectOn401 = true } = {}) {
-    const init = { method, headers: {} };
+    const init = { method, headers: { "X-Requested-With": "fetch" } };
     if (body !== undefined) {
         init.headers["Content-Type"] = "application/json";
         init.body = JSON.stringify(body);
@@ -138,6 +114,79 @@ async function api(url, { method = "GET", body, redirectOn401 = true } = {}) {
     let data = null;
     try { data = text ? JSON.parse(text) : null; } catch { data = text; }
     return { ok: true, status: res.status, data };
+}
+
+// login.html: runs when the form is submitted (button click or Enter key)
+async function login() {
+    const button = document.getElementById("login-button");
+    const message = document.getElementById("message");
+    if (button.disabled) return;                       // one request at a time (also saves the 10-per-minute login limit)
+
+    const usernameBox = document.getElementById("username");
+    const passwordBox = document.getElementById("password");
+    const username = trimLikeServer(usernameBox.value);   // the server trims it too
+    const password = passwordBox.value;                // never trimmed
+
+    message.className = "";
+    message.textContent = "";
+
+    if (username.length === 0 || password.length === 0) {   // the server's own text, without spending a request
+        message.className = "error";
+        message.textContent = "Username and password are required.";
+        (username.length === 0 ? usernameBox : passwordBox).focus();
+        return;
+    }
+
+    button.disabled = true;
+    let leaving = false;
+    try {
+        const res = await api("/api/login", {
+            method: "POST",
+            body: { username, password },
+            redirectOn401: false                       // a wrong password is a 401 and must show its message here
+        });
+
+        if (res.ok) {
+            leaving = true;                            // the cookie is already set by the response
+            window.location.href = "/home.html";
+            return;
+        }
+
+        message.className = "error";
+        message.textContent = res.message;             // 400 / 401 / 429 / 500 text from the server
+    } catch {
+        message.className = "error";
+        message.textContent = "Network error. Please try again.";
+    } finally {
+        if (!leaving) button.disabled = false;         // stays disabled while the page changes
+    }
+}
+
+// home.html: end the session, then go to the start page
+async function logout() {
+    const button = document.getElementById("logout-button");
+    const message = document.getElementById("message");
+    if (button.disabled) return;
+
+    button.disabled = true;
+    message.textContent = "";
+
+    let leaving = false;
+    try {
+        const res = await api("/api/logout", { method: "POST", redirectOn401: false });
+
+        if (res.ok) {
+            leaving = true;
+            window.location.href = "/";
+            return;
+        }
+
+        message.textContent = res.message;
+    } catch {
+        message.textContent = "Network error. Please try again.";
+    } finally {
+        if (!leaving) button.disabled = false;
+    }
 }
 
 // Heading that home.html shows for each role
@@ -261,6 +310,47 @@ function getTicketId() {
     return /^[0-9]{1,18}$/.test(id) ? id : null;
 }
 
+// ticket.html: the notes under the details (oldest first). Everyone who can see the ticket sees its notes.
+// Safe to call again to refresh. Everything is written with textContent, so HTML in a note is shown as text.
+async function loadNotes(id) {
+    const box = document.getElementById("notes-box");
+    const list = document.getElementById("note-list");
+    const empty = document.getElementById("notes-empty");
+
+    try {
+        const res = await api("/api/tickets/" + id + "/notes");
+        if (res.status === 401) return;                    // already redirected to "/"
+
+        list.replaceChildren();
+        if (!res.ok) {
+            empty.textContent = res.status === 404 ? "Ticket not found." : res.message;
+        } else {
+            for (const n of res.data) {
+                const li = document.createElement("li");
+
+                const meta = document.createElement("div");
+                meta.className = "ticket-meta";
+                const who = document.createElement("strong");
+                who.textContent = n.author;
+                meta.append(who, " · " + new Date(n.createdAt).toLocaleString());
+
+                const body = document.createElement("p");
+                body.className = "note-body";
+                body.textContent = n.body;
+
+                li.append(meta, body);
+                list.append(li);
+            }
+            empty.textContent = res.data.length === 0 ? "No notes yet." : "";
+        }
+        box.hidden = false;
+    } catch {
+        list.replaceChildren();
+        empty.textContent = "Network error. Please try again.";
+        box.hidden = false;
+    }
+}
+
 // ticket.html: view of the ticket whose id is in the address (?id=12).
 // Safe to call again to refresh (it clears what it drew before).
 async function loadTicket() {
@@ -269,6 +359,7 @@ async function loadTicket() {
     const details = document.getElementById("ticket-details");
     const takeButton = document.getElementById("take-button");
     const resolveButton = document.getElementById("resolve-button");
+    const noteForm = document.getElementById("note-form");
     const message = document.getElementById("message");
 
     message.textContent = "";
@@ -300,15 +391,18 @@ async function loadTicket() {
         if (t.resolvedAt) addDetail(details, "Resolved", new Date(t.resolvedAt).toLocaleString());
         takeButton.hidden = !t.canTake;                    // the server says whether this caller can take it now
         resolveButton.hidden = !t.canResolve;              // ... and whether this caller can resolve it now
+        noteForm.hidden = !t.canAddNote;                   // ... and whether this caller can write notes on it
+        await loadNotes(id);                               // the notes list (it handles its own errors)
     } catch {
         message.textContent = "Network error. Please try again.";
     }
 }
 
-// ticket.html: shared by the Take and Resolve buttons. Sends one request, then redraws the ticket
-// with its real new state and shows a message. `texts` maps a status code (or "ok") to the message;
-// a status without an entry shows the server's own message.
-async function ticketAction(button, path, options, texts) {
+// ticket.html: shared by the Take, Resolve and Add Note buttons. Sends one request, then redraws the
+// ticket with its real new state and shows a message. `texts` maps a status code (or "ok") to the
+// message; a status without an entry shows the server's own message. `onOk` (optional) runs right
+// after a successful answer.
+async function ticketAction(button, path, options, texts, onOk) {
     if (button.disabled) return;                       // one request at a time
 
     const id = getTicketId();
@@ -324,6 +418,7 @@ async function ticketAction(button, path, options, texts) {
 
         if (res.ok) {
             text = texts.ok;
+            if (onOk) onOk();
         } else if (res.status === 401) {               // already redirected to "/"
             return;
         } else {
@@ -359,6 +454,18 @@ function resolveTicket() {
     });                                                // 403 shows the server's message ("Only the technician who took this ticket ...")
 }
 
+// ticket.html (the technician who took the ticket): save the text of #note-body as a note.
+// The server trims and validates it; the box is emptied only when the note was saved.
+function addNote() {
+    const box = document.getElementById("note-body");
+    return ticketAction(document.getElementById("note-button"), "/notes",
+        { method: "POST", body: { body: box.value } }, {
+        ok: "Note added.",
+        403: "Only the technician who took this ticket can add notes.",
+        404: "Ticket not found.",
+    }, () => { box.value = ""; });                     // 400 shows the server's message and keeps what was typed
+}
+
 // create-ticket.html: send the form to POST /api/tickets. The server validates and is the authority;
 // the maxlength attributes in the HTML only stop typing past the same limits.
 async function createTicket() {
@@ -392,6 +499,24 @@ async function createTicket() {
 
     button.disabled = false;
 }
+
+// Connects the page's controls to the functions above. There is no inline onclick / onsubmit / onchange
+// in any page, because the Content-Security-Policy (SecurityHeaders.cs) does not allow inline script.
+// Every page loads script.js at the end of <body>, so the elements already exist; a page simply skips
+// the ids it does not have.
+function listen(id, type, handler) {
+    const element = document.getElementById(id);
+    if (element) element.addEventListener(type, handler);
+}
+
+listen("register-form", "submit", event => { event.preventDefault(); register(); });
+listen("login-form", "submit", event => { event.preventDefault(); login(); });
+listen("logout-button", "click", () => logout());
+listen("status-filter", "change", () => filterTickets());
+listen("submit-ticket", "click", () => createTicket());
+listen("take-button", "click", () => takeTicket());
+listen("resolve-button", "click", () => resolveTicket());
+listen("note-button", "click", () => addNote());
 
 // Run automatically on pages that have the greeting element (no inline script needed)
 if (document.getElementById("greeting")) loadMe();

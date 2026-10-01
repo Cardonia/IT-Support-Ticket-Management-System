@@ -13,7 +13,11 @@ public record TicketDetail(
     string CreatedBy, string? AssignedTo,
     DateTime CreatedAt, DateTime UpdatedAt, DateTime? ResolvedAt,
     bool CanTake = false,      // set by the endpoint: this caller may press "Take Ticket" right now
-    bool CanResolve = false);  // from the SQL: In Progress and assigned to this caller ("Mark Resolved")
+    bool CanResolve = false,   // from the SQL: In Progress and assigned to this caller ("Mark Resolved")
+    bool CanAddNote = false);  // from the SQL: assigned to this caller (note form)
+
+// One note of a ticket. Author is the technician's username (users.first_name).
+public record NoteItem(long Id, string Author, string Body, DateTime CreatedAt);
 
 // Just enough of a ticket to explain why a take/resolve changed nothing
 public record TicketState(string Status, long? AssignedTo);
@@ -78,7 +82,18 @@ public static class TicketRepository
         RETURNING id
         """;
 
-    // Only used after ResolveSql changed nothing, to choose the right error message
+    // Adding a note, the whole rule in ONE statement: the note is only inserted when the ticket exists
+    // and is assigned to the caller (INSERT ... SELECT ... WHERE). author_id is the session user.
+    // Works for In Progress and Resolved tickets (an Open ticket has no assignee, so it never matches).
+    const string AddNoteSql = """
+        INSERT INTO ticket_notes (ticket_id, author_id, body)
+        SELECT id, @user_id, @body
+        FROM tickets
+        WHERE id = @id AND assigned_to = @user_id
+        RETURNING id
+        """;
+
+    // Only used after ResolveSql (or AddNoteSql) changed nothing, to choose the right error message
     const string StateSql = "SELECT status, assigned_to FROM tickets WHERE id = @id";
 
     // One ticket, but only if the caller may see it: @see_all is true for Technicians,
@@ -87,11 +102,26 @@ public static class TicketRepository
     const string GetByIdSql = """
         SELECT t.id, t.title, t.description, t.priority, t.status,
                c.first_name, a.first_name, t.created_at, t.updated_at, t.resolved_at,
-               COALESCE(t.status = 'In Progress' AND t.assigned_to = @user_id, false)
+               COALESCE(t.status = 'In Progress' AND t.assigned_to = @user_id, false),
+               COALESCE(t.assigned_to = @user_id, false)
         FROM tickets t
         JOIN users c ON c.id = t.created_by
         LEFT JOIN users a ON a.id = t.assigned_to
         WHERE t.id = @id AND (@see_all OR t.created_by = @user_id)
+        """;
+
+    // The notes of one ticket, oldest first, but only if the caller may see the ticket (same rule as
+    // GetByIdSql). Starting from tickets with a LEFT JOIN makes one statement answer both questions:
+    //   no row at all        = no such ticket, or not yours  -> the endpoint answers 404
+    //   one row, n.id NULL   = ticket visible, no notes yet  -> empty list
+    // id breaks ties between notes written in the same instant.
+    const string GetNotesSql = """
+        SELECT n.id, u.first_name, n.body, n.created_at
+        FROM tickets t
+        LEFT JOIN ticket_notes n ON n.ticket_id = t.id
+        LEFT JOIN users u ON u.id = n.author_id
+        WHERE t.id = @id AND (@see_all OR t.created_by = @user_id)
+        ORDER BY n.created_at, n.id
         """;
 
     public static async Task<long> CreateAsync(
@@ -150,7 +180,8 @@ public static class TicketRepository
             reader.GetDateTime(7),
             reader.GetDateTime(8),
             reader.IsDBNull(9) ? null : reader.GetDateTime(9),
-            CanResolve: reader.GetBoolean(10));
+            CanResolve: reader.GetBoolean(10),
+            CanAddNote: reader.GetBoolean(11));
     }
 
     // All tickets, or only those with the given status (already validated by the endpoint),
@@ -194,6 +225,43 @@ public static class TicketRepository
         cmd.Parameters.AddWithValue("id", ticketId);
         cmd.Parameters.AddWithValue("user_id", technicianId);
         return await cmd.ExecuteScalarAsync(ct) is not null;
+    }
+
+    // null = no such ticket or the caller may not see it; otherwise the notes (possibly none)
+    public static async Task<List<NoteItem>?> GetNotesAsync(
+        NpgsqlDataSource db, long ticketId, long userId, bool seeAll, CancellationToken ct)
+    {
+        await using var cmd = db.CreateCommand(GetNotesSql);
+        cmd.Parameters.AddWithValue("id", ticketId);
+        cmd.Parameters.AddWithValue("user_id", userId);
+        cmd.Parameters.AddWithValue("see_all", seeAll);
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct);
+        if (!await reader.ReadAsync(ct)) return null;          // ticket missing or not visible
+
+        var list = new List<NoteItem>();
+        do
+        {
+            if (reader.IsDBNull(0)) break;                     // the ticket has no notes
+            list.Add(new NoteItem(
+                reader.GetInt64(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetDateTime(3)));
+        } while (await reader.ReadAsync(ct));
+        return list;
+    }
+
+    // The new note's id, or null when nothing was inserted (no such ticket, or not assigned to this caller)
+    public static async Task<long?> TryAddNoteAsync(
+        NpgsqlDataSource db, long ticketId, long authorId, string body, CancellationToken ct)
+    {
+        await using var cmd = db.CreateCommand(AddNoteSql);
+        cmd.Parameters.AddWithValue("id", ticketId);
+        cmd.Parameters.AddWithValue("user_id", authorId);
+        cmd.Parameters.AddWithValue("body", body);
+        var id = await cmd.ExecuteScalarAsync(ct);
+        return id is null ? null : Convert.ToInt64(id);
     }
 
     // null = no such ticket

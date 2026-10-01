@@ -16,7 +16,7 @@
 
         <div id="filter-box" hidden>
             <label for="status-filter">Status</label>
-            <select id="status-filter" onchange="filterTickets()">
+            <select id="status-filter">
                 <option value="">All</option>
                 <option value="Open">Open</option>
                 <option value="In Progress">In Progress</option>
@@ -30,7 +30,7 @@
 
         <a id="create-ticket-link" href="/create-ticket.html" class="button" hidden>Create Ticket</a>
 
-        <button onclick="logout()">Logout</button>
+        <button id="logout-button">Logout</button>
 
         <p id="message"></p>
 

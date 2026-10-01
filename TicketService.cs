@@ -2,6 +2,7 @@ using Npgsql;
 
 public enum TakeResult { Taken, AlreadyTaken, NotFound }
 public enum ResolveResult { Resolved, NotFound, NotAssignee, WrongState }
+public enum NoteResult { Added, NotFound, NotAssignee }
 
 // Business rules for tickets. Endpoints call this; this calls the repository.
 // A rule that must hold even when two people act at the same moment lives inside the SQL
@@ -36,5 +37,18 @@ public static class TicketService
         if (state is null) return ResolveResult.NotFound;
         if (state.AssignedTo is not null && state.AssignedTo != technicianId) return ResolveResult.NotAssignee;
         return ResolveResult.WrongState;     // still Open, or already resolved
+    }
+
+    // Rule: only the technician the ticket is assigned to can add notes to it.
+    // The check and the insert are ONE statement (see AddNoteSql), so there is no gap between them.
+    public static async Task<(NoteResult Result, long NoteId)> AddNoteAsync(
+        NpgsqlDataSource db, long ticketId, long technicianId, string body, CancellationToken ct)
+    {
+        var noteId = await TicketRepository.TryAddNoteAsync(db, ticketId, technicianId, body, ct);
+        if (noteId is not null) return (NoteResult.Added, noteId.Value);
+
+        // Nothing inserted. This second query only chooses which message to send; it decides nothing.
+        var state = await TicketRepository.GetStateAsync(db, ticketId, ct);
+        return (state is null ? NoteResult.NotFound : NoteResult.NotAssignee, 0);
     }
 }
