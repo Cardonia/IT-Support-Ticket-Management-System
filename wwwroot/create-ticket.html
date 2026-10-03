@@ -1,40 +1,74 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Ticket</title>
+    <meta name="theme-color" content="#1a56a8">
+    <title>New ticket - IT Help Desk</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="register-box">
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        <h2>Create Ticket</h2>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="/home.html"><span class="brand-mark" aria-hidden="true">IT</span>IT Help Desk</a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
 
-        <label for="title">Title</label>
-        <input id="title" type="text" maxlength="100" placeholder="Short summary">
+    <main id="main" class="page">
 
-        <label for="description">Description</label>
-        <textarea id="description" rows="5" maxlength="2000" placeholder="What is the problem?"></textarea>
+        <a class="back-link" href="/home.html">Back to tickets</a>
 
-        <label for="priority">Priority</label>
-        <select id="priority">
-            <option value="Low">Low</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="High">High</option>
-        </select>
+        <div class="page-head">
+            <h1>New ticket</h1>
+        </div>
 
-        <button id="submit-ticket">Submit</button>
+        <!-- novalidate: the server validates and script.js shows its message. A real form so that Enter and the
+             mobile keyboard's Go key submit it; script.js listens for the submit event. -->
+        <form id="create-form" class="panel create-form" method="post" novalidate>
 
-        <a href="/home.html" class="button">Back</a>
+            <div class="field">
+                <label for="title">Title</label>
+                <input id="title" type="text" maxlength="100" autocomplete="off" enterkeyhint="next"
+                    aria-describedby="title-hint">
+                <p id="title-hint" class="field-hint">A short summary of the problem.</p>
+            </div>
 
-        <p id="message"></p>
+            <div class="field">
+                <label for="description">Description</label>
+                <textarea id="description" rows="5" maxlength="2000" aria-describedby="description-hint"></textarea>
+                <p id="description-hint" class="field-hint">What happened, and what you already tried.</p>
+            </div>
 
-    </div>
+            <div class="field">
+                <label for="priority">Priority</label>
+                <select id="priority">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button id="submit-ticket" class="btn" type="submit">Create ticket</button>
+                <a class="btn btn-secondary" href="/home.html">Cancel</a>
+            </div>
+
+            <p id="message" role="alert"></p>
+
+        </form>
+
+    </main>
 
     <script src="script.js"></script>
 

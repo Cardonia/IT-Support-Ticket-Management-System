@@ -1,214 +1,1458 @@
+/* IT Help Desk: one stylesheet for every page.
+   Rules of the system: system fonts only (no downloads), flat surfaces (1px borders, no shadows, no gradients),
+   one accent colour, mobile first with a single breakpoint at 720px, and no inline styles anywhere
+   (the Content-Security-Policy forbids them). Change colours and sizes here, in the tokens. */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+    /* colour */
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --border: #d8dde5;
+    --border-strong: #7f8998;
+    --text: #1c2430;
+    --muted: #566170;
+    --accent: #1a56a8;
+    --accent-hover: #144584;
+    --accent-tint: #e8f0fb;
+    --admin: #3b2f6b;              /* the Admin area's own colour, so it is never mistaken for a normal page */
+    --admin-tint: #eeebf7;
+
+    /* status badges (the text is always shown too) */
+    --open-bg: #e4edf9;
+    --open-fg: #164a8a;
+    --progress-bg: #fcefd0;
+    --progress-fg: #744600;
+    --resolved-bg: #dff1e5;
+    --resolved-fg: #1b6335;
+
+    /* priority */
+    --prio-high: #a3261a;
+    --prio-medium: #8a5300;
+    --prio-low: #566170;
+
+    /* messages */
+    --error-bg: #fdeceb;
+    --error-border: #c4493d;
+    --error-fg: #8f1d14;
+    --success-bg: #e4f4e9;
+    --success-border: #3d8a58;
+    --success-fg: #1b6335;
+
+    /* type */
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* shape and spacing (4px scale) */
+    --radius: 6px;
+    --radius-lg: 8px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    /* layout */
+    --page-width: 960px;
+    --auth-width: 400px;
+    --tap: 44px;
+}
+
+/* ---------- 2. Base ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
 
 body {
-
-    font-family: Arial, sans-serif;
-
-    background: #f2f2f2;
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    min-height: 100vh;
-
-    box-sizing: border-box;
-
-    padding: 20px 0;
-
     margin: 0;
-
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 var(--font);
 }
 
-.register-box,
-.welcome-box {
-
-    background: white;
-
-    padding: 30px;
-
-    width: 300px;
-
-    border-radius: 10px;
-
-    box-shadow: 0 0 10px #ccc;
-
-}
-
-h3,
+h1,
 h2,
+h3,
+p,
+dl,
+dd,
+ul {
+    margin: 0;
+}
+
 h1 {
-
-    text-align: center;
-
+    font-size: 1.375rem;          /* 22px on phones */
+    font-weight: 600;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
-p {
-
-    text-align: center;
-
-    color: #555;
-
+h2 {
+    margin-bottom: var(--space-3);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
 }
 
-input,
-textarea,
-select {
-
-    width: 100%;
-
-    padding: 10px;
-
-    margin: 8px 0;
-
-    box-sizing: border-box;
-
+a {
+    color: var(--accent);
 }
 
-button,
-.button {
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
 
-    display: block;
+/* display:flex on .btn would otherwise beat the hidden attribute */
+[hidden] {
+    display: none !important;
+}
 
-    width: 100%;
+.skip-link {
+    position: absolute;
+    left: var(--space-2);
+    top: -64px;
+    z-index: 10;
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+}
 
-    padding: 10px;
+.skip-link:focus {
+    top: var(--space-2);
+}
 
-    margin-top: 10px;
+/* ---------- 3. Layout ---------- */
+.topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
 
-    background: #333;
+.topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    max-width: var(--page-width);
+    margin: 0 auto;
+    padding: var(--space-2) var(--space-4);
+    min-height: 60px;
+}
 
-    color: white;
-
-    border: none;
-
-    cursor: pointer;
-
-    text-align: center;
-
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--tap);
+    color: var(--text);
+    font-weight: 600;
     text-decoration: none;
-
-    box-sizing: border-box;
-
+    white-space: nowrap;
 }
 
-button:hover,
-.button:hover {
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
 
-    background: #555;
+.topbar-user {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    min-width: 0;
+    text-align: right;
+    font-size: 0.875rem;
+    line-height: 1.3;
+}
 
+.topbar-user strong {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.topbar-user span {
+    color: var(--muted);
+}
+
+.page {
+    flex: 1;
+    width: 100%;
+    max-width: var(--page-width);
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-4) var(--space-7);
+}
+
+.page-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    margin-bottom: var(--space-1);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.section {
+    margin-top: var(--space-5);
+}
+
+/* centred single-column pages: log in, register */
+.auth {
+    width: 100%;
+    max-width: var(--auth-width);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4) var(--space-7);
+}
+
+.auth h1 {
+    margin-bottom: var(--space-4);
+}
+
+.auth-alt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--space-1);
+    margin-top: var(--space-2);
+    color: var(--muted);
+    font-size: 0.9375rem;
+}
+
+.auth-alt a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    min-width: var(--tap);
+}
+
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+}
+
+/* ---------- 4. Buttons ---------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-5);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--accent);
+}
+
+.btn-secondary:hover {
+    background: var(--accent-tint);
+    border-color: var(--accent);
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* ---------- 5. Forms ---------- */
+.field {
+    margin-bottom: var(--space-4);
 }
 
 label {
-
     display: block;
+    margin-bottom: 6px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
 
-    margin-top: 8px;
-
-    color: #555;
-
-    font-size: 14px;
-
+input,
+select,
+textarea {
+    display: block;
+    width: 100%;
+    min-height: var(--tap);
+    padding: 10px var(--space-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;                 /* 16px: iOS does not zoom into the field */
 }
 
 textarea {
-
-    font-family: inherit;
-
+    min-height: 120px;
+    line-height: 1.5;
     resize: vertical;
-
 }
 
-/* display:block on .button would otherwise beat the hidden attribute */
-[hidden] {
+input::placeholder,
+textarea::placeholder {
+    color: #5f6b7a;
+}
 
-    display: none !important;
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+    border-color: var(--accent);
+}
 
+.field-hint {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+}
+
+/* ---------- 6. Messages (script.js sets class "error" or "success" on #message) ---------- */
+#message,
+#action-message,
+#note-message,
+#new-user-message,
+#rename-message,
+#confirm-message {
+    margin-top: var(--space-4);
+}
+
+#message:empty,
+#action-message:empty,
+#note-message:empty,
+#new-user-message:empty,
+#rename-message:empty,
+#confirm-message:empty {
+    display: none;
+}
+
+.error,
+.success {
+    padding: 10px var(--space-3);
+    border: 1px solid;
+    border-left-width: 4px;
+    border-radius: var(--radius);
+    font-size: 0.9375rem;
+    overflow-wrap: anywhere;
+}
+
+.error {
+    background: var(--error-bg);
+    border-color: var(--error-border);
+    color: var(--error-fg);
+}
+
+.success {
+    background: var(--success-bg);
+    border-color: var(--success-border);
+    color: var(--success-fg);
+}
+
+/* ---------- 7. Status badges and priority ---------- */
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.badge-open {
+    background: var(--open-bg);
+    color: var(--open-fg);
+}
+
+.badge-progress {
+    background: var(--progress-bg);
+    color: var(--progress-fg);
+}
+
+.badge-resolved {
+    background: var(--resolved-bg);
+    color: var(--resolved-fg);
+}
+
+.priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.priority::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.priority-high {
+    color: var(--prio-high);
+}
+
+.priority-medium {
+    color: var(--prio-medium);
+}
+
+.priority-low {
+    color: var(--prio-low);
+}
+
+/* ---------- 8. Ticket list (home) ---------- */
+.toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: var(--space-4);
+}
+
+.toolbar label {
+    margin: 0;
 }
 
 .ticket-list {
-
     list-style: none;
-
     padding: 0;
-
-    margin: 8px 0;
-
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
 }
 
-.ticket-list li {
-
-    padding: 8px 0;
-
-    border-bottom: 1px solid #eee;
-
+.ticket-list:empty {
+    display: none;
 }
 
-.ticket-title {
-
-    font-weight: bold;
-
-    overflow-wrap: anywhere;
-
-}
-
-.ticket-meta {
-
-    font-size: 13px;
-
-    color: #555;
-
+.ticket-list li + li {
+    border-top: 1px solid var(--border);
 }
 
 .ticket-link {
-
-    display: block;
-
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
     color: inherit;
-
     text-decoration: none;
-
 }
 
 .ticket-link:hover {
+    background: #f8fafc;
+}
 
-    background: #f7f7f7;
+.ticket-link:focus-visible {
+    outline-offset: -2px;
+}
 
+.ticket-main {
+    min-width: 0;
+}
+
+.ticket-title {
+    color: var(--accent);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.ticket-link:hover .ticket-title {
+    text-decoration: underline;
+}
+
+.ticket-by,
+.ticket-date {
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+.ticket-by {
+    overflow-wrap: anywhere;
+}
+
+.ticket-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+}
+
+.empty {
+    padding: var(--space-6) var(--space-4);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--muted);
+    text-align: center;
+}
+
+.empty:empty {
+    display: none;
+}
+
+/* ---------- 9. Ticket page ---------- */
+.ticket-layout {
+    display: grid;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-3);
 }
 
 .ticket-description,
 .note-body {
-
-    text-align: left;
-
-    white-space: pre-wrap;
-
+    white-space: pre-wrap;           /* keep the author's line breaks */
     overflow-wrap: anywhere;
+}
 
+.details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+}
+
+.details dt {
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+.details dd {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.actions .btn {
+    width: 100%;
+    margin-top: var(--space-4);
+}
+
+.note-list {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--border);
+}
+
+.note-list li {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.note-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-3);
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+.note-meta strong {
+    color: var(--text);
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }
 
 .note-body {
-
-    margin: 4px 0 0;
-
+    margin-top: var(--space-1);
 }
 
-/* register form: short rule under a field, and error text that stands out */
-.field-hint {
+.note-empty {
+    padding: var(--space-3) 0;
+    color: var(--muted);
+}
 
+.note-empty:empty {
+    display: none;
+}
+
+.note-form {
+    margin-top: var(--space-4);
+}
+
+.note-form .btn {
+    margin-top: var(--space-3);
+    width: 100%;
+}
+
+/* ---------- 10. Public start page ---------- */
+.hero {
+    max-width: 640px;
+    padding-top: var(--space-5);
+}
+
+.hero p {
+    margin-top: var(--space-3);
+    color: var(--muted);
+}
+
+.hero .form-actions {
+    margin-top: var(--space-5);
+}
+
+.roles {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+}
+
+.roles h2 {
+    margin-bottom: var(--space-1);
+}
+
+.hero .roles p {
+    margin-top: 0;
+}
+
+/* ---------- 11. Wider screens (tablet and up) ---------- */
+@media (min-width: 720px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .topbar-inner {
+        padding: var(--space-2) var(--space-5);
+    }
+
+    .topbar-user {
+        flex-direction: row;
+        align-items: baseline;
+        gap: var(--space-3);
+        font-size: 0.9375rem;
+    }
+
+    .page {
+        padding: var(--space-5) var(--space-5) 64px;
+    }
+
+    .auth {
+        padding-top: 64px;
+    }
+
+    .panel {
+        padding: var(--space-5);
+    }
+
+    .page-head {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .toolbar {
+        flex-direction: row;
+        align-items: center;
+        gap: var(--space-3);
+    }
+
+    .toolbar select {
+        width: 220px;
+    }
+
+    /* list rows become aligned columns: ticket | status | priority | date */
+    .ticket-link {
+        grid-template-columns: minmax(0, 1fr) 112px 96px 104px;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-3) var(--space-5);
+    }
+
+    .ticket-meta {
+        display: contents;
+    }
+
+    .ticket-link .badge,
+    .ticket-link .priority {
+        justify-self: start;         /* grid items stretch by default; keep the badge as wide as its text */
+    }
+
+    .ticket-date {
+        text-align: right;
+    }
+
+    .form-actions {
+        flex-direction: row;
+    }
+
+    .form-actions .btn {
+        min-width: 140px;
+    }
+
+    .hero {
+        padding-top: var(--space-6);
+    }
+
+    .roles {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+    }
+
+    /* ticket page: description and notes on the left, details and actions in a side column */
+    .ticket-layout {
+        grid-template-columns: minmax(0, 1fr) 280px;
+        grid-template-areas:
+            "description side"
+            "notes side";
+        grid-template-rows: auto 1fr;
+        align-items: start;
+        column-gap: var(--space-5);
+    }
+
+    .ticket-body {
+        grid-area: description;
+    }
+
+    .ticket-side {
+        grid-area: side;
+        margin-top: 0;
+    }
+
+    .ticket-notes {
+        grid-area: notes;
+        margin-top: var(--space-5);
+    }
+
+    .details {
+        grid-template-columns: 1fr;
+    }
+
+    .note-form .btn {
+        width: auto;
+        min-width: 140px;
+    }
+
+    .create-form {
+        max-width: 640px;
+    }
+}
+
+
+/* ---------- 12. Admin area (pages in AdminSite/, served only to Admins) ---------- */
+.topbar-admin {
+    border-top: 3px solid var(--admin);
+}
+
+.topbar-admin .brand-mark {
+    background: var(--admin);
+}
+
+.topbar-admin .brand-name {
+    display: none;                   /* phones: the mark and the "Admin" tag are enough, the name needs the room */
+}
+
+.topbar-admin .btn {
+    white-space: nowrap;
+}
+
+.brand-area {
+    padding: 2px var(--space-2);
+    border-radius: var(--radius);
+    background: var(--admin-tint);
+    color: var(--admin);
+    font-size: 0.8125rem;
+}
+
+.admin-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-nav-list {
+    display: flex;
+    flex-wrap: wrap;                 /* on a phone the sections wrap into rows: nothing scrolls sideways */
+    gap: var(--space-1) var(--space-2);
+    max-width: var(--page-width);
+    margin: 0 auto;
+    padding: var(--space-2) var(--space-4);
+    list-style: none;
+}
+
+.admin-nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 var(--space-3);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+a.admin-nav-link:hover {
+    background: var(--bg);
+}
+
+a.admin-nav-link[aria-current="page"] {
+    background: var(--admin-tint);
+    color: var(--admin);
+}
+
+.admin-nav-link.is-soon {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.admin-intro {
+    max-width: 60ch;
+    color: var(--muted);
+}
+
+.admin-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-card {
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.admin-card h2 {
+    margin: 0 0 var(--space-1);
+    font-size: 1.0625rem;
+}
+
+.admin-card h2 a {
+    display: inline-flex;            /* a section that is built is a link: keep it a full-size tap target */
+    align-items: center;
+    min-height: var(--tap);
+}
+
+.admin-card p {
     margin: 0;
-
-    font-size: 12px;
-
-    color: #777;
-
-    text-align: left;
-
+    color: var(--muted);
 }
 
-.error {
+.admin-card .admin-card-soon {
+    margin-top: var(--space-2);
+    font-size: 0.875rem;
+    font-style: italic;
+}
 
-    color: #b00020;
+@media (min-width: 720px) {
+    .topbar-admin .brand-name {
+        display: inline;
+    }
 
+    .admin-nav-list {
+        padding: var(--space-2) var(--space-5);
+    }
+
+    .admin-cards {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+    }
+}
+
+/* ---------- 13. Admin: users (Level 30) ---------- */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.page-foot {
+    margin-top: var(--space-6);
+}
+
+.page-foot a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+}
+
+.notice {
+    margin-bottom: var(--space-4);
+    padding: 10px var(--space-3);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent-tint);
+    font-size: 0.9375rem;
+}
+
+/* role and account-state badges (the word is always shown) */
+.badge-admin {
+    background: var(--admin-tint);
+    color: var(--admin);
+}
+
+.badge-tech {
+    background: var(--open-bg);
+    color: var(--open-fg);
+}
+
+.badge-employee {
+    background: #eceff3;
+    color: var(--text);
+}
+
+.badge-on {
+    background: var(--resolved-bg);
+    color: var(--resolved-fg);
+}
+
+.badge-off {
+    background: var(--error-bg);
+    color: var(--error-fg);
+}
+
+.badges-inline {
+    margin-top: 0;
+}
+
+/* panels stacked on the Admin pages */
+.admin-panel {
+    margin-bottom: var(--space-4);
+}
+
+.admin-panel > h2 {
+    margin-bottom: var(--space-3);
+}
+
+.admin-panel .field:last-child {
+    margin-bottom: 0;
+}
+
+.details > div {
+    min-width: 0;
+}
+
+/* search and filter bar */
+.filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.filters .field {
+    margin: 0;
+}
+
+.list-summary {
+    margin-bottom: var(--space-2);
+    color: var(--muted);
+    font-size: 0.9375rem;
+}
+
+.list-summary:empty {
+    display: none;
+}
+
+/* the user table: stacked blocks on phones (label above value), a real table from tablet width */
+.table-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.data-table tbody,
+.data-table tr,
+.data-table th,
+.data-table td {
+    display: block;
+}
+
+.data-table tr {
+    padding: var(--space-3) var(--space-4);
+}
+
+.data-table tr + tr {
+    border-top: 1px solid var(--border);
+}
+
+.data-table th[scope="row"] {
+    margin-bottom: var(--space-1);
+    font-size: 1.0625rem;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.data-table th a {
+    display: flex;                   /* the whole cell is the tap target, not just the letters */
+    align-items: center;
+    min-height: var(--tap);
+    min-width: var(--tap);           /* a one-or-two-letter name in a narrow column is still a full-size target */
+}
+
+.data-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: 2px 0;
+    font-size: 0.9375rem;
+    text-align: right;
+}
+
+.data-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.pager-info {
+    color: var(--muted);
+    font-size: 0.9375rem;
+    text-align: center;
+}
+
+/* one-time password */
+.temp-password {
+    display: block;
+    margin: var(--space-3) 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px dashed var(--admin);
+    border-radius: var(--radius);
+    background: var(--admin-tint);
+    color: var(--text);
+    font: 600 1.25rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.06em;
+    overflow-wrap: anywhere;
+    user-select: all;
+}
+
+/* actions on one user */
+.inline-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 420px;
+}
+
+.inline-form .field {
+    margin: 0;
+}
+
+.action-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+}
+
+.btn-danger {
+    border-color: var(--prio-high);
+    background: var(--prio-high);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    border-color: #7f1d14;
+    background: #7f1d14;
+}
+
+.btn-danger-outline {
+    border-color: var(--prio-high);
+    background: var(--surface);
+    color: var(--prio-high);
+}
+
+.btn-danger-outline:hover {
+    background: var(--error-bg);
+    border-color: var(--prio-high);
+}
+
+.confirm {
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--error-border);
+    border-left-width: 4px;
+    border-radius: var(--radius);
+    background: var(--error-bg);
+}
+
+.confirm h3 {
+    margin-bottom: var(--space-2);
+    font-size: 1.0625rem;
+}
+
+.confirm p {
+    margin-bottom: var(--space-3);
+}
+
+.confirm .field-hint {
+    margin-bottom: 0;
+}
+
+.form-actions-row {
+    margin-top: var(--space-4);
+}
+
+/* short lists on the user page */
+.mini-list {
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+}
+
+.mini-list li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.mini-main {
+    overflow-wrap: anywhere;
+}
+
+.note-excerpt {
+    white-space: pre-wrap;
+}
+
+.mini-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    color: var(--muted);
+    font-size: 0.875rem;
+}
+
+.mini-list .mini-empty {
+    color: var(--muted);
+}
+
+@media (min-width: 720px) {
+    .filters {
+        grid-template-columns: 2fr 1fr 1fr 1.4fr;
+        align-items: end;
+    }
+
+    .data-table thead {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+    }
+
+    .data-table {
+        display: table;
+    }
+
+    .data-table thead {
+        display: table-header-group;
+    }
+
+    .data-table tbody {
+        display: table-row-group;
+    }
+
+    .data-table tr {
+        display: table-row;
+        padding: 0;
+    }
+
+    .data-table th,
+    .data-table td {
+        display: table-cell;
+        padding: var(--space-3) var(--space-4);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .data-table thead th {
+        background: var(--bg);
+        color: var(--muted);
+        font-size: 0.875rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .data-table th[scope="row"] {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .data-table td::before {
+        content: none;
+    }
+
+    .data-table tr + tr {
+        border-top: 0;
+    }
+
+    .data-table tbody tr + tr > * {
+        border-top: 1px solid var(--border);
+    }
+
+    .inline-form {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+
+    .inline-form .field {
+        flex: 1;
+    }
+
+    .action-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .form-actions-row {
+        flex-direction: row;
+    }
+
+    .mini-list li {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    .mini-meta {
+        flex: none;
+        justify-content: flex-end;
+    }
+}
+
+/* ---------- Level 32: ticket pages of the Admin area ---------- */
+.data-table tr.row-deleted {
+    opacity: 0.7;
+}
+
+.sub-title {
+    margin-top: var(--space-4);
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 640px;
+    margin-bottom: var(--space-5);
+}
+
+.edit-form .field {
+    margin: 0;
+}
+
+.admin-panel .inline-form {
+    margin-bottom: var(--space-3);
+}
+
+/* user names that link to a user page, inside a table cell or a details list: a full-size tap target */
+.data-table td a,
+.details dd a {
+    display: inline-flex;
+    align-items: center;
+    min-width: var(--tap);
+    min-height: var(--tap);
+}
+
+/* ---------- Level 33: notes and activity pages of the Admin area ---------- */
+.filters-reset {
+    display: flex;
+    align-items: flex-end;
+}
+
+.filters-reset .btn {
+    width: 100%;
+}
+
+/* user and ticket links inside a note's or an event's meta line: a full-size tap target */
+.note-meta a,
+.mini-meta a,
+.mini-main a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+    min-width: var(--tap);
+}
+
+.feed-day {
+    margin: var(--space-5) 0 var(--space-2);
+    font-size: 1.0625rem;
+}
+
+.feed-day:first-child {
+    margin-top: 0;
+}
+
+.feed-more {
+    margin-top: var(--space-4);
+    text-align: center;
+}
+
+.feed-more .btn {
+    width: 100%;
+}
+
+@media (min-width: 720px) {
+    .feed-more .btn {
+        width: auto;
+    }
+}
+
+/* ---------- Level 34: the Admin dashboard ---------- */
+.dash-group {
+    margin-top: var(--space-5);
+}
+
+.dash-group > h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.0625rem;
+}
+
+.stat-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    box-sizing: border-box;
+    min-height: var(--tap);
+    height: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+}
+
+a.stat:hover {
+    border-color: var(--muted);
+}
+
+.stat-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+}
+
+.dash-more {
+    margin: var(--space-2) 0 0;
+}
+
+.dash-more a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap);
+}
+
+@media (min-width: 720px) {
+    .stat-list {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
 }

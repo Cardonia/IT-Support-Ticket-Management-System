@@ -18,8 +18,19 @@ public static class AuthenticationMiddleware
     // API routes reachable without a session
     static readonly string[] PublicApi = { "/api/login", "/api/register", "/api/logout" };
 
+    // While users.must_change_password is true (temporary password), only these paths work
+    // (/api/logout and the public assets are already reachable without further checks).
+    // /change-password.html and POST /api/me/password exist since Level 30.
+    static readonly string[] AllowedWhileMustChange =
+        { "/api/me", "/api/me/password", "/change-password.html" };
+
+    static bool AllowedDuringPasswordChange(PathString path) =>
+        AllowedWhileMustChange.Any(p => path.Equals(p, StringComparison.OrdinalIgnoreCase));
+
     public static void UseAuthenticationMiddleware(this WebApplication app)
     {
+        var adminSessionMinutes = AuthHelpers.AdminSessionMinutes(app.Configuration);
+
         app.Use(async (context, next) =>
         {
             var path = context.Request.Path;
@@ -40,7 +51,8 @@ public static class AuthenticationMiddleware
                 try
                 {
                     var db = context.RequestServices.GetRequiredService<NpgsqlDataSource>();
-                    user = await AuthHelpers.FindUserAsync(db, token, context.RequestAborted);
+                    user = await AuthHelpers.FindUserAsync(
+                        db, token, context.RequestAborted, adminSessionMinutes);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
@@ -99,6 +111,26 @@ public static class AuthenticationMiddleware
 
             // Don't let the back button show protected pages after logout
             context.Response.Headers.CacheControl = "no-store";
+
+            // A temporary password must be replaced first: everything else is refused here,
+            // on the server (hiding links in the page would not be enough).
+            if (user!.MustChangePassword && !AllowedDuringPasswordChange(path))
+            {
+                if (path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        error = "You must change your password first.",
+                        code = "must_change_password"
+                    });
+                }
+                else
+                {
+                    context.Response.Redirect("/change-password.html");
+                }
+                return;
+            }
 
             await next();
         });

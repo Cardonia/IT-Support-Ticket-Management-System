@@ -12,9 +12,9 @@ public static class TicketService
     // Rule: a ticket can be taken only while it is Open and nobody is assigned.
     // Taking it sets status = In Progress, assigned_to = the technician and updated_at, in ONE statement.
     public static async Task<TakeResult> TakeAsync(
-        NpgsqlDataSource db, long ticketId, long technicianId, CancellationToken ct)
+        NpgsqlDataSource db, long ticketId, long technicianId, CancellationToken ct, string? ip = null)
     {
-        if (await TicketRepository.TryTakeAsync(db, ticketId, technicianId, ct))
+        if (await TicketRepository.TryTakeAsync(db, ticketId, technicianId, ct, ip))
             return TakeResult.Taken;
 
         // Nothing changed: either there is no such ticket, or someone else got there first.
@@ -27,9 +27,9 @@ public static class TicketService
     // Rule: only the technician who took a ticket can resolve it, and only while it is In Progress.
     // Resolving sets status = Resolved, resolved_at and updated_at in ONE statement.
     public static async Task<ResolveResult> ResolveAsync(
-        NpgsqlDataSource db, long ticketId, long technicianId, CancellationToken ct)
+        NpgsqlDataSource db, long ticketId, long technicianId, CancellationToken ct, string? ip = null)
     {
-        if (await TicketRepository.TryResolveAsync(db, ticketId, technicianId, ct))
+        if (await TicketRepository.TryResolveAsync(db, ticketId, technicianId, ct, ip))
             return ResolveResult.Resolved;
 
         // Nothing changed. This second query only chooses which message to send; it decides nothing.
@@ -42,9 +42,9 @@ public static class TicketService
     // Rule: only the technician the ticket is assigned to can add notes to it.
     // The check and the insert are ONE statement (see AddNoteSql), so there is no gap between them.
     public static async Task<(NoteResult Result, long NoteId)> AddNoteAsync(
-        NpgsqlDataSource db, long ticketId, long technicianId, string body, CancellationToken ct)
+        NpgsqlDataSource db, long ticketId, long technicianId, string body, CancellationToken ct, string? ip = null)
     {
-        var noteId = await TicketRepository.TryAddNoteAsync(db, ticketId, technicianId, body, ct);
+        var noteId = await TicketRepository.TryAddNoteAsync(db, ticketId, technicianId, body, ct, ip);
         if (noteId is not null) return (NoteResult.Added, noteId.Value);
 
         // Nothing inserted. This second query only chooses which message to send; it decides nothing.

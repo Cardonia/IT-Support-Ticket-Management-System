@@ -13,13 +13,13 @@ public record CreateNoteRequest(string? Body);
 
 public static class TicketEndpoints
 {
-    const int TitleMax = 100;          // keep in sync with tickets_title_check
-    const int DescriptionMax = 2000;   // keep in sync with tickets_description_check
+    internal const int TitleMax = 100;          // keep in sync with tickets_title_check
+    internal const int DescriptionMax = 2000;   // keep in sync with tickets_description_check
     const int NoteMax = 2000;          // keep in sync with ticket_notes_body_check
-    static readonly string[] Priorities = { "Low", "Medium", "High" };
+    internal static readonly string[] Priorities = { "Low", "Medium", "High" };
     static readonly string[] Statuses = { "Open", "In Progress", "Resolved" };   // keep in sync with tickets_status_check
 
-    static string? ValidateCreate(
+    internal static string? ValidateCreate(
         CreateTicketRequest? data, out string title, out string description, out string priority)
     {
         title = (data?.Title ?? "").Trim();
@@ -28,10 +28,12 @@ public static class TicketEndpoints
 
         if (title.Length == 0) return "Title is required.";
         if (title.Length > TitleMax) return $"Title must be at most {TitleMax} characters.";
+        if (InputText.HasForbiddenControl(title)) return "Title " + InputText.TextMessage;
 
         if (description.Length == 0) return "Description is required.";
         if (description.Length > DescriptionMax)
             return $"Description must be at most {DescriptionMax} characters.";
+        if (InputText.HasForbiddenControl(description)) return "Description " + InputText.TextMessage;
 
         var raw = (data?.Priority ?? "").Trim();
         if (raw.Length > 0)
@@ -64,6 +66,7 @@ public static class TicketEndpoints
         body = (data?.Body ?? "").Trim();
         if (body.Length == 0) return "Note is required.";
         if (body.Length > NoteMax) return $"Note must be at most {NoteMax} characters.";
+        if (InputText.HasForbiddenControl(body)) return "Note " + InputText.TextMessage;
         return null;
     }
 
@@ -97,7 +100,7 @@ public static class TicketEndpoints
                     statusCode: StatusCodes.Status401Unauthorized);
 
             var id = await TicketRepository.CreateAsync(
-                db, userId, title, description, priority, ctx.RequestAborted);
+                db, userId, title, description, priority, ctx.RequestAborted, AuditLog.ClientIp(ctx));
 
             return Results.Created($"/api/tickets/{id}", new { id });
         }).RequireRole("Employee");
@@ -163,7 +166,7 @@ public static class TicketEndpoints
                 return Results.Json(new { error = "Not authenticated." },
                     statusCode: StatusCodes.Status401Unauthorized);
 
-            var result = await TicketService.TakeAsync(db, id, userId, ctx.RequestAborted);
+            var result = await TicketService.TakeAsync(db, id, userId, ctx.RequestAborted, AuditLog.ClientIp(ctx));
             return TakeResponse(id, result);
         }).RequireRole("Technician");
 
@@ -180,7 +183,7 @@ public static class TicketEndpoints
                 return Results.Json(new { error = "Not authenticated." },
                     statusCode: StatusCodes.Status401Unauthorized);
 
-            var result = await TicketService.ResolveAsync(db, id, userId, ctx.RequestAborted);
+            var result = await TicketService.ResolveAsync(db, id, userId, ctx.RequestAborted, AuditLog.ClientIp(ctx));
             return ResolveResponse(id, result);
         }).RequireRole("Technician");
 
@@ -215,7 +218,7 @@ public static class TicketEndpoints
                 return Results.Json(new { error = "Not authenticated." },
                     statusCode: StatusCodes.Status401Unauthorized);
 
-            var (result, noteId) = await TicketService.AddNoteAsync(db, id, userId, body, ctx.RequestAborted);
+            var (result, noteId) = await TicketService.AddNoteAsync(db, id, userId, body, ctx.RequestAborted, AuditLog.ClientIp(ctx));
             return result switch
             {
                 NoteResult.Added => Results.Json(new { id = noteId }, statusCode: StatusCodes.Status201Created),

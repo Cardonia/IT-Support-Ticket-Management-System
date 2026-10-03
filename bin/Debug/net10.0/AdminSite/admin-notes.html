@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>Notes - IT Help Desk Admin</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="notes">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <div class="page-head">
+            <h1>Notes</h1>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <form id="nt-filters" class="filters" role="search" aria-label="Find notes" method="get">
+            <div class="field">
+                <label for="nt-q">Search the note text</label>
+                <input id="nt-q" type="search" maxlength="50" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="nt-author">Written by</label>
+                <input id="nt-author" type="text" maxlength="14" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="nt-ticket">Ticket number</label>
+                <input id="nt-ticket" type="text" inputmode="numeric" maxlength="18" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="nt-from">From date</label>
+                <input id="nt-from" type="date">
+            </div>
+            <div class="field">
+                <label for="nt-to">To date (included)</label>
+                <input id="nt-to" type="date">
+            </div>
+            <div class="field filters-reset">
+                <button id="nt-reset" class="btn btn-secondary" type="button">Clear filters</button>
+            </div>
+        </form>
+
+        <p id="nt-summary" class="list-summary" aria-live="polite"></p>
+
+        <ol id="nt-list" class="note-list feed-list" aria-label="Notes, newest first"></ol>
+
+        <p id="nt-empty" class="empty"></p>
+
+        <div id="nt-more-wrap" class="feed-more" hidden>
+            <button id="nt-more" class="btn btn-secondary" type="button">Show older notes</button>
+        </div>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-notes.js"></script>
+
+</body>
+
+</html>

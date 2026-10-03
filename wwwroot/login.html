@@ -1,40 +1,59 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <meta name="theme-color" content="#1a56a8">
+    <title>Log in - IT Help Desk</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="register-box">
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        <h2>Login</h2>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">IT</span>IT Help Desk</a>
+        </div>
+    </header>
 
-        <!-- Same pattern as register.html. novalidate: script.js shows the messages. script.js listens for
-             the submit event (no inline handler: the Content-Security-Policy forbids inline script).
-             method="post": if script.js ever fails to load, the browser sends the form as a POST (the
-             server refuses it with 403) instead of a GET that would put the password in the URL. -->
-        <form id="login-form" method="post" novalidate>
+    <main id="main" class="auth">
 
-            <label for="username">Username</label>
-            <input id="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off"
-                spellcheck="false">
+        <div class="panel">
 
-            <label for="password">Password</label>
-            <input id="password" type="password" autocomplete="current-password">
+            <h1>Log in</h1>
 
-            <button id="login-button" type="submit">Login</button>
+            <!-- novalidate: script.js shows the messages. script.js listens for the submit event (no inline
+                 handler: the Content-Security-Policy forbids inline script). method="post": if script.js
+                 ever fails to load, the browser sends the form as a POST (the server refuses it with 403)
+                 instead of a GET that would put the password in the URL. -->
+            <form id="login-form" method="post" novalidate>
 
-            <p id="message" role="alert"></p>
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off"
+                        spellcheck="false" enterkeyhint="next">
+                </div>
 
-        </form>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" autocomplete="current-password" enterkeyhint="go">
+                </div>
 
-    </div>
+                <button id="login-button" class="btn btn-block" type="submit">Log in</button>
+
+                <p id="message" role="alert"></p>
+
+            </form>
+
+        </div>
+
+        <p class="auth-alt">No account yet? <a href="/register.html">Register</a></p>
+
+    </main>
 
     <script src="script.js"></script>
 

@@ -1,34 +1,53 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>IT Service</title>
-
+    <meta name="theme-color" content="#1a56a8">
+    <title>IT Help Desk</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
 
-    <div class="welcome-box">
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        <h1>Welcome</h1>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">IT</span>IT Help Desk</a>
+        </div>
+    </header>
 
-        <p>Welcome to our IT Service.</p>
+    <main id="main" class="page">
 
-        <a href="/login.html" class="button">Login</a>
+        <div class="hero">
 
-        <a href="/register.html" class="button">Register</a>
+            <h1>Report an IT problem and follow it until it is fixed</h1>
 
-    </div>
+            <p>Log in to open a ticket for your computer, account or network, or to work on the tickets your colleagues have opened.</p>
+
+            <div class="form-actions">
+                <a class="btn" href="/login.html">Log in</a>
+                <a class="btn btn-secondary" href="/register.html">Register</a>
+            </div>
+
+            <div class="roles">
+                <div>
+                    <h2>Employees</h2>
+                    <p>Describe the problem, set a priority and see the status and the technician&#39;s notes.</p>
+                </div>
+                <div>
+                    <h2>Technicians</h2>
+                    <p>See every ticket, take one, add notes and mark it resolved.</p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
 
 </body>
 
 </html>
-

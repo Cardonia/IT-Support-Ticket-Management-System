@@ -66,5 +66,6 @@ app.UseRateLimiter();
 
 app.MapAuthEndpoints();
 app.MapTicketEndpoints();
+app.MapAdmin();            // Admin area (Admin/AdminEndpoints.cs): pages from the private AdminSite folder
 
 app.Run();

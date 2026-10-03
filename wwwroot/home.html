@@ -1,20 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <meta name="theme-color" content="#1a56a8">
+    <title>Tickets - IT Help Desk</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <div class="welcome-box">
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        <h2 id="greeting"></h2>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="/home.html"><span class="brand-mark" aria-hidden="true">IT</span>IT Help Desk</a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
 
-        <h3 id="section-title"></h3>
+    <main id="main" class="page">
 
-        <div id="filter-box" hidden>
+        <div class="page-head">
+            <h1 id="section-title"></h1>
+            <a id="create-ticket-link" href="/create-ticket.html" class="btn" hidden>New ticket</a>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <div id="filter-box" class="toolbar" hidden>
             <label for="status-filter">Status</label>
             <select id="status-filter">
                 <option value="">All</option>
@@ -26,17 +46,14 @@
 
         <ul id="ticket-list" class="ticket-list"></ul>
 
-        <p id="section-empty"></p>
+        <p id="section-empty" class="empty"></p>
 
-        <a id="create-ticket-link" href="/create-ticket.html" class="button" hidden>Create Ticket</a>
+        <p class="page-foot"><a href="/change-password.html">Change password</a></p>
 
-        <button id="logout-button">Logout</button>
-
-        <p id="message"></p>
-
-    </div>
+    </main>
 
     <script src="script.js"></script>
 
 </body>
+
 </html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>User - IT Help Desk Admin</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="users">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <a class="back-link" href="/admin/users">&larr; All users</a>
+
+        <div class="page-head">
+            <h1 id="user-title">User</h1>
+            <div id="user-badges" class="badges badges-inline"></div>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <!-- Shown once after a password reset -->
+        <section id="result-panel" class="panel admin-panel" aria-live="polite" hidden></section>
+
+        <section class="panel admin-panel" aria-labelledby="profile-title">
+            <h2 id="profile-title">Profile</h2>
+            <dl id="profile" class="details"></dl>
+        </section>
+
+        <section id="actions-panel" class="panel admin-panel" aria-labelledby="actions-title" hidden>
+            <h2 id="actions-title">Actions</h2>
+
+            <p id="actions-note" class="notice" hidden></p>
+
+            <form id="rename-form" class="inline-form" method="post" novalidate>
+                <div class="field">
+                    <label for="rename-input">Username</label>
+                    <input id="rename-input" type="text" maxlength="14" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+                </div>
+                <button id="rename-button" class="btn btn-secondary" type="submit">Save username</button>
+            </form>
+            <p id="rename-message" role="alert"></p>
+
+            <div id="action-buttons" class="action-row"></div>
+
+            <!-- One confirmation panel for every risky action: it says what will happen and asks for the admin's password -->
+            <form id="confirm-panel" class="confirm" method="post" novalidate hidden>
+                <h3 id="confirm-title"></h3>
+                <p id="confirm-text"></p>
+                <div class="field">
+                    <label for="confirm-password">Your password</label>
+                    <input id="confirm-password" type="password" autocomplete="current-password">
+                    <p class="field-hint">Type your own password to confirm.</p>
+                </div>
+                <div class="form-actions form-actions-row">
+                    <button id="confirm-button" class="btn btn-danger" type="submit"></button>
+                    <button id="confirm-cancel" class="btn btn-secondary" type="button">Cancel</button>
+                </div>
+                <p id="confirm-message" role="alert"></p>
+            </form>
+        </section>
+
+        <section class="panel admin-panel" aria-labelledby="created-title">
+            <h2 id="created-title">Tickets reported</h2>
+            <ul id="list-created" class="mini-list"></ul>
+        </section>
+
+        <section class="panel admin-panel" aria-labelledby="assigned-title">
+            <h2 id="assigned-title">Tickets worked on</h2>
+            <ul id="list-assigned" class="mini-list"></ul>
+        </section>
+
+        <section class="panel admin-panel" aria-labelledby="notes-title">
+            <h2 id="notes-title">Latest notes</h2>
+            <ul id="list-notes" class="mini-list"></ul>
+        </section>
+
+        <section class="panel admin-panel" aria-labelledby="events-title">
+            <h2 id="events-title">Recent activity</h2>
+            <ul id="list-events" class="mini-list"></ul>
+        </section>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-user.js"></script>
+
+</body>
+
+</html>

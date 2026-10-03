@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>Tickets - IT Help Desk Admin</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="tickets">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <div class="page-head">
+            <h1>Tickets</h1>
+            <button id="tk-new-button" class="btn" type="button" aria-expanded="false" aria-controls="tk-new-panel">New ticket</button>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <!-- New ticket on behalf of an employee -->
+        <section id="tk-new-panel" class="panel admin-panel" aria-labelledby="tk-new-title" hidden>
+            <h2 id="tk-new-title">New ticket</h2>
+            <form id="tk-new-form" method="post" novalidate>
+                <div class="field">
+                    <label for="tk-new-for">Reported by (employee username)</label>
+                    <input id="tk-new-for" type="text" maxlength="14" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+                    <p class="field-hint">The ticket belongs to this employee and appears in their list.</p>
+                </div>
+                <div class="field">
+                    <label for="tk-new-title-input">Title</label>
+                    <input id="tk-new-title-input" type="text" maxlength="100" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="tk-new-description">Description</label>
+                    <textarea id="tk-new-description" rows="5" maxlength="2000"></textarea>
+                </div>
+                <div class="field">
+                    <label for="tk-new-priority">Priority</label>
+                    <select id="tk-new-priority">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-actions form-actions-row">
+                    <button id="tk-new-submit" class="btn" type="submit">Create ticket</button>
+                    <button id="tk-new-cancel" class="btn btn-secondary" type="button">Cancel</button>
+                </div>
+                <p id="tk-new-message" role="alert"></p>
+            </form>
+        </section>
+
+        <form id="filters" class="filters" role="search" aria-label="Find tickets" method="get">
+            <div class="field">
+                <label for="filter-q">Search by title or number</label>
+                <input id="filter-q" type="search" maxlength="50" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="filter-status">Status</label>
+                <select id="filter-status">
+                    <option value="">Any status</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filter-priority">Priority</label>
+                <select id="filter-priority">
+                    <option value="">Any priority</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filter-sort">Sort by</label>
+                <select id="filter-sort">
+                    <option value="id:desc">Newest first</option>
+                    <option value="id:asc">Oldest first</option>
+                    <option value="updated:desc">Recently changed</option>
+                    <option value="updated:asc">Least recently changed</option>
+                    <option value="priority:asc">Priority, high first</option>
+                    <option value="priority:desc">Priority, low first</option>
+                    <option value="status:asc">Status, Open first</option>
+                    <option value="status:desc">Status, Resolved first</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filter-creator">Reported by</label>
+                <input id="filter-creator" type="text" maxlength="14" autocomplete="off" autocapitalize="none" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="filter-assignee">Assigned to</label>
+                <input id="filter-assignee" type="text" maxlength="14" autocomplete="off" autocapitalize="none" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="filter-deleted">Deleted tickets</label>
+                <select id="filter-deleted">
+                    <option value="exclude">Hide</option>
+                    <option value="include">Show with the others</option>
+                    <option value="only">Show only these</option>
+                </select>
+            </div>
+        </form>
+
+        <p id="list-summary" class="list-summary" aria-live="polite"></p>
+
+        <div id="table-wrap" class="table-wrap">
+            <table class="data-table">
+                <caption class="visually-hidden">Tickets</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Ticket</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Priority</th>
+                        <th scope="col">Reported by</th>
+                        <th scope="col">Assigned to</th>
+                        <th scope="col">Changed</th>
+                    </tr>
+                </thead>
+                <tbody id="tickets-body"></tbody>
+            </table>
+        </div>
+
+        <p id="list-empty" class="empty"></p>
+
+        <nav id="pager" class="pager" aria-label="Pages" hidden>
+            <button id="page-prev" class="btn btn-secondary" type="button">Previous</button>
+            <span id="page-info" class="pager-info"></span>
+            <button id="page-next" class="btn btn-secondary" type="button">Next</button>
+        </nav>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-tickets.js"></script>
+
+</body>
+
+</html>

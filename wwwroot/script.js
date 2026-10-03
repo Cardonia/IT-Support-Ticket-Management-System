@@ -162,14 +162,62 @@ async function login() {
     }
 }
 
+// Writes text into one of the message boxes (#message, #action-message, #note-message) and styles it:
+// kind is "error" (red) or "success" (green); an empty text hides the box. textContent only, never innerHTML.
+function setMessage(id, text, kind = "") {
+    const box = document.getElementById(id);
+    if (!box) return;
+    box.className = text ? kind : "";
+    box.textContent = text;
+}
+
+// Class names for the status badge and the priority marker. A Map, so an unexpected value from the
+// server can never pick up a property of Object (it just gets no colour).
+const STATUS_CLASSES = new Map([["Open", "badge-open"], ["In Progress", "badge-progress"], ["Resolved", "badge-resolved"]]);
+const PRIORITY_CLASSES = new Map([["High", "priority-high"], ["Medium", "priority-medium"], ["Low", "priority-low"]]);
+
+// <span class="badge badge-...">Status</span>: the word is always shown, the colour only helps
+function statusBadge(status) {
+    const badge = document.createElement("span");
+    badge.className = "badge " + (STATUS_CLASSES.get(status) ?? "");
+    badge.textContent = status;
+    return badge;
+}
+
+// <span class="priority priority-...">High</span>: a dot (drawn by CSS) in the priority's colour plus the word
+function priorityLabel(priority) {
+    const label = document.createElement("span");
+    label.className = "priority " + (PRIORITY_CLASSES.get(priority) ?? "");
+    label.textContent = priority;
+    return label;
+}
+
+// The top bar of the signed-in pages: who is logged in (textContent only)
+function fillNav(username, role) {
+    const user = document.getElementById("nav-user");
+    const roleBox = document.getElementById("nav-role");
+    if (user) user.textContent = username;
+    if (roleBox) roleBox.textContent = role;
+}
+
+// create-ticket.html and ticket.html: fill the top bar. A failure is silent (the page's own calls
+// show their errors, and a 401 already sent the user to "/").
+async function loadNav() {
+    try {
+        const res = await api("/api/me");
+        if (res.ok) fillNav(res.data.username, res.data.role);
+    } catch {
+        // the top bar just stays without a name
+    }
+}
+
 // home.html: end the session, then go to the start page
 async function logout() {
     const button = document.getElementById("logout-button");
-    const message = document.getElementById("message");
     if (button.disabled) return;
 
     button.disabled = true;
-    message.textContent = "";
+    setMessage("message", "");
 
     let leaving = false;
     try {
@@ -181,9 +229,9 @@ async function logout() {
             return;
         }
 
-        message.textContent = res.message;
+        setMessage("message", res.message, "error");
     } catch {
-        message.textContent = "Network error. Please try again.";
+        setMessage("message", "Network error. Please try again.", "error");
     } finally {
         if (!leaving) button.disabled = false;
     }
@@ -192,23 +240,25 @@ async function logout() {
 // Heading that home.html shows for each role
 const HOME_TITLES = { Employee: "My Tickets", Technician: "All Tickets" };
 
-// home.html: show who is logged in and what their role sees (textContent only, never innerHTML)
+// home.html: show who is logged in (top bar) and what their role sees (textContent only, never innerHTML)
 async function loadMe() {
-    const greeting = document.getElementById("greeting");
     const title = document.getElementById("section-title");
     const empty = document.getElementById("section-empty");
     const createLink = document.getElementById("create-ticket-link");
     const filterBox = document.getElementById("filter-box");
-    const message = document.getElementById("message");
 
     try {
         const res = await api("/api/me");
         if (!res.ok) {
-            if (res.status !== 401) message.textContent = res.message;   // 401 already redirected
+            if (res.status !== 401) setMessage("message", res.message, "error");   // 401 already redirected
             return;
         }
         const { username, role } = res.data;
-        greeting.textContent = "Hello, " + username + " (" + role + ")";
+        if (role === "Admin") {                       // an Admin has no ticket list of their own
+            window.location.replace("/admin");
+            return;
+        }
+        fillNav(username, role);
         title.textContent = HOME_TITLES[role] ?? "Tickets";
         createLink.hidden = role !== "Employee";      // only Employees can create tickets
         filterBox.hidden = role !== "Technician";     // only Technicians can filter by status
@@ -221,7 +271,7 @@ async function loadMe() {
             empty.textContent = "No tickets yet.";
         }
     } catch {
-        message.textContent = "Network error. Please try again.";
+        setMessage("message", "Network error. Please try again.", "error");
     }
 }
 
@@ -234,17 +284,28 @@ function renderTickets(list, tickets) {
         title.className = "ticket-title";
         title.textContent = t.title;
 
+        const main = document.createElement("div");
+        main.className = "ticket-main";
+        main.append(title);
+        if (t.createdBy) {                                       // only the technician list has it
+            const by = document.createElement("div");
+            by.className = "ticket-by";
+            by.textContent = "by " + t.createdBy;
+            main.append(by);
+        }
+
+        const date = document.createElement("span");
+        date.className = "ticket-date";
+        date.textContent = new Date(t.createdAt).toLocaleDateString();
+
         const meta = document.createElement("div");
         meta.className = "ticket-meta";
-        const parts = [t.priority, t.status];
-        if (t.createdBy) parts.push("by " + t.createdBy);        // only the technician list has it
-        parts.push(new Date(t.createdAt).toLocaleDateString());
-        meta.textContent = parts.join(" \u00b7 ");
+        meta.append(statusBadge(t.status), priorityLabel(t.priority), date);
 
         const link = document.createElement("a");
         link.className = "ticket-link";
         link.href = "/ticket.html?id=" + encodeURIComponent(t.id);
-        link.append(title, meta);
+        link.append(main, meta);
 
         const li = document.createElement("li");
         li.append(link);
@@ -259,7 +320,6 @@ let latestListRequest = 0;    // only the newest request may draw (quick filter 
 async function loadTicketList(url, emptyText = "No tickets yet.") {
     const list = document.getElementById("ticket-list");
     const empty = document.getElementById("section-empty");
-    const message = document.getElementById("message");
 
     const mine = ++latestListRequest;
     const res = await api(url);
@@ -268,7 +328,7 @@ async function loadTicketList(url, emptyText = "No tickets yet.") {
     if (!res.ok) {
         list.replaceChildren();                        // never leave an old list under an error message
         empty.textContent = "";
-        if (res.status !== 401) message.textContent = res.message;   // 401 already redirected
+        if (res.status !== 401) setMessage("message", res.message, "error");   // 401 already redirected
         return;
     }
 
@@ -279,8 +339,7 @@ async function loadTicketList(url, emptyText = "No tickets yet.") {
 // home.html (Technician): reload the list for the status chosen in the dropdown ("" = all)
 async function filterTickets() {
     const status = document.getElementById("status-filter").value;
-    const message = document.getElementById("message");
-    message.textContent = "";
+    setMessage("message", "");
 
     try {
         if (status === "") {
@@ -290,18 +349,21 @@ async function filterTickets() {
                 "No tickets with this status.");
         }
     } catch {
-        message.textContent = "Network error. Please try again.";
+        setMessage("message", "Network error. Please try again.", "error");
     }
 }
 
-// One "Label: value" row in the details list (textContent only)
+// One label / value pair in the details list <dl> (textContent only)
 function addDetail(list, label, value) {
-    const name = document.createElement("strong");
-    name.textContent = label + ": ";
+    const term = document.createElement("dt");
+    term.textContent = label;
 
-    const li = document.createElement("li");
-    li.append(name, document.createTextNode(value));
-    list.append(li);
+    const definition = document.createElement("dd");
+    definition.textContent = value;
+
+    const row = document.createElement("div");
+    row.append(term, definition);
+    list.append(row);
 }
 
 // ticket.html: the ticket id from the address (?id=12), or null when it is not a plain number
@@ -329,10 +391,12 @@ async function loadNotes(id) {
                 const li = document.createElement("li");
 
                 const meta = document.createElement("div");
-                meta.className = "ticket-meta";
+                meta.className = "note-meta";
                 const who = document.createElement("strong");
                 who.textContent = n.author;
-                meta.append(who, " · " + new Date(n.createdAt).toLocaleString());
+                const when = document.createElement("span");
+                when.textContent = new Date(n.createdAt).toLocaleString();
+                meta.append(who, when);
 
                 const body = document.createElement("p");
                 body.className = "note-body";
@@ -355,17 +419,19 @@ async function loadNotes(id) {
 // Safe to call again to refresh (it clears what it drew before).
 async function loadTicket() {
     const title = document.getElementById("ticket-title");
+    const badges = document.getElementById("ticket-badges");
     const description = document.getElementById("ticket-description");
     const details = document.getElementById("ticket-details");
     const takeButton = document.getElementById("take-button");
     const resolveButton = document.getElementById("resolve-button");
     const noteForm = document.getElementById("note-form");
-    const message = document.getElementById("message");
 
-    message.textContent = "";
+    setMessage("message", "");
+    setMessage("action-message", "");
+    setMessage("note-message", "");
     const id = getTicketId();
     if (id === null) {
-        message.textContent = "Ticket not found.";
+        setMessage("message", "Ticket not found.", "error");
         return;
     }
 
@@ -373,20 +439,19 @@ async function loadTicket() {
         const res = await api("/api/tickets/" + id);
         if (!res.ok) {
             if (res.status !== 401) {                          // 401 already redirected
-                message.textContent = res.status === 404 ? "Ticket not found." : res.message;
+                setMessage("message", res.status === 404 ? "Ticket not found." : res.message, "error");
             }
             return;
         }
 
         const t = res.data;
         title.textContent = t.title;
+        badges.replaceChildren(statusBadge(t.status), priorityLabel(t.priority));
         description.textContent = t.description;
         details.replaceChildren();
-        addDetail(details, "Status", t.status);
-        addDetail(details, "Priority", t.priority);
         addDetail(details, "Created by", t.createdBy);
-        addDetail(details, "Created", new Date(t.createdAt).toLocaleString());
         addDetail(details, "Assigned to", t.assignedTo ?? "Unassigned");
+        addDetail(details, "Created", new Date(t.createdAt).toLocaleString());
         addDetail(details, "Updated", new Date(t.updatedAt).toLocaleString());
         if (t.resolvedAt) addDetail(details, "Resolved", new Date(t.resolvedAt).toLocaleString());
         takeButton.hidden = !t.canTake;                    // the server says whether this caller can take it now
@@ -394,30 +459,32 @@ async function loadTicket() {
         noteForm.hidden = !t.canAddNote;                   // ... and whether this caller can write notes on it
         await loadNotes(id);                               // the notes list (it handles its own errors)
     } catch {
-        message.textContent = "Network error. Please try again.";
+        setMessage("message", "Network error. Please try again.", "error");
     }
 }
 
 // ticket.html: shared by the Take, Resolve and Add Note buttons. Sends one request, then redraws the
-// ticket with its real new state and shows a message. `texts` maps a status code (or "ok") to the
-// message; a status without an entry shows the server's own message. `onOk` (optional) runs right
-// after a successful answer.
-async function ticketAction(button, path, options, texts, onOk) {
+// ticket with its real new state and shows a message next to the button (#action-message for Take and
+// Resolve, #note-message for the note form: so the message is on screen where the user just tapped).
+// `texts` maps a status code (or "ok") to the message; a status without an entry shows the server's own
+// message. `onOk` (optional) runs right after a successful answer.
+async function ticketAction(button, path, options, texts, onOk, messageId = "action-message") {
     if (button.disabled) return;                       // one request at a time
 
     const id = getTicketId();
     if (id === null) return;
 
-    const message = document.getElementById("message");
     button.disabled = true;
-    message.textContent = "";
+    setMessage(messageId, "");
 
     let text = "";
+    let kind = "error";
     try {
         const res = await api("/api/tickets/" + id + path, options);
 
         if (res.ok) {
             text = texts.ok;
+            kind = "success";
             if (onOk) onOk();
         } else if (res.status === 401) {               // already redirected to "/"
             return;
@@ -426,9 +493,9 @@ async function ticketAction(button, path, options, texts, onOk) {
         }
 
         await loadTicket();                            // show the real state (this also hides the button when needed)
-        message.textContent = text;                    // after loadTicket(), because it clears #message
+        setMessage(messageId, text, kind);             // after loadTicket(), because it clears the message boxes
     } catch {
-        message.textContent = "Network error. Please try again.";
+        setMessage(messageId, "Network error. Please try again.", "error");
     } finally {
         button.disabled = false;
     }
@@ -463,14 +530,13 @@ function addNote() {
         ok: "Note added.",
         403: "Only the technician who took this ticket can add notes.",
         404: "Ticket not found.",
-    }, () => { box.value = ""; });                     // 400 shows the server's message and keeps what was typed
+    }, () => { box.value = ""; }, "note-message");      // 400 shows the server's message and keeps what was typed
 }
 
 // create-ticket.html: send the form to POST /api/tickets. The server validates and is the authority;
 // the maxlength attributes in the HTML only stop typing past the same limits.
 async function createTicket() {
     const button = document.getElementById("submit-ticket");
-    const message = document.getElementById("message");
     if (button.disabled) return;                      // one request at a time (no duplicate tickets)
 
     const title = document.getElementById("title").value;
@@ -478,7 +544,7 @@ async function createTicket() {
     const priority = document.getElementById("priority").value;
 
     button.disabled = true;
-    message.textContent = "";
+    setMessage("message", "");
 
     try {
         const res = await api("/api/tickets", { method: "POST", body: { title, description, priority } });
@@ -489,15 +555,95 @@ async function createTicket() {
         }
 
         if (res.status !== 401) {                      // 401 already redirected to "/"
-            message.textContent = res.status === 403
+            setMessage("message", res.status === 403
                 ? "Only employees can create tickets."
-                : res.message;
+                : res.message, "error");
         }
     } catch {
-        message.textContent = "Network error. Please try again.";
+        setMessage("message", "Network error. Please try again.", "error");
     }
 
     button.disabled = false;
+}
+
+// The change-password rules, in the same order and words as the server (POST /api/me/password). Returns null when
+// everything is fine, otherwise { field, text } (the box to focus and the message). The server stays the authority.
+function checkPasswordChange(current, next, repeat) {
+    if (current.length === 0)
+        return { field: "current-password", text: "Enter your current password." };
+
+    if (next.length < 8)
+        return { field: "new-password", text: "Password must be at least 8 characters." };
+
+    if (new TextEncoder().encode(next).length > 72)
+        return { field: "new-password", text: "Password is too long (max 72 bytes)." };
+
+    if (next === current)
+        return { field: "new-password", text: "The new password must be different from the current one." };
+
+    if (next !== repeat)                               // the only rule the server cannot check (it never sees the 2nd box)
+        return { field: "repeat-password", text: "Passwords do not match." };
+
+    return null;
+}
+
+// change-password.html: runs when the form is submitted (button click or Enter key)
+async function changePassword() {
+    const button = document.getElementById("change-button");
+    if (button.disabled) return;                       // one request at a time
+
+    const current = document.getElementById("current-password").value;   // passwords are never trimmed
+    const next = document.getElementById("new-password").value;
+    const repeat = document.getElementById("repeat-password").value;
+
+    setMessage("message", "");
+
+    const problem = checkPasswordChange(current, next, repeat);
+    if (problem) {
+        setMessage("message", problem.text, "error");
+        document.getElementById(problem.field).focus();
+        return;
+    }
+
+    button.disabled = true;
+    let leaving = false;
+    try {
+        const res = await api("/api/me/password", {
+            method: "POST",
+            body: { currentPassword: current, newPassword: next }
+        });
+
+        if (res.ok) {
+            leaving = true;                            // other sessions of this account have been ended by the server
+            setMessage("message", "Password changed.", "success");
+            window.setTimeout(() => { window.location.href = "/home.html"; }, 1200);
+            return;
+        }
+
+        if (res.status !== 401) {                      // 401 already redirected to "/"
+            setMessage("message", res.message, "error");
+            if (res.status === 403) document.getElementById("current-password").focus();
+        }
+    } catch {
+        setMessage("message", "Network error. Please try again.", "error");
+    } finally {
+        if (!leaving) button.disabled = false;         // stays disabled while the page changes
+    }
+}
+
+// change-password.html: top bar, and the "temporary password" note (with no way back) when the server says the
+// password must be changed first. Every other page is unreachable in that state anyway (AuthenticationMiddleware).
+async function loadChangePasswordPage() {
+    try {
+        const res = await api("/api/me");
+        if (!res.ok) return;
+        fillNav(res.data.username, res.data.role);
+        const forced = res.data.mustChangePassword === true;
+        document.getElementById("forced-note").hidden = !forced;
+        document.getElementById("back-box").hidden = forced;
+    } catch {
+        // the page still works; the server decides everything
+    }
 }
 
 // Connects the page's controls to the functions above. There is no inline onclick / onsubmit / onchange
@@ -513,11 +659,15 @@ listen("register-form", "submit", event => { event.preventDefault(); register();
 listen("login-form", "submit", event => { event.preventDefault(); login(); });
 listen("logout-button", "click", () => logout());
 listen("status-filter", "change", () => filterTickets());
-listen("submit-ticket", "click", () => createTicket());
+listen("create-form", "submit", event => { event.preventDefault(); createTicket(); });
 listen("take-button", "click", () => takeTicket());
 listen("resolve-button", "click", () => resolveTicket());
 listen("note-button", "click", () => addNote());
+listen("change-form", "submit", event => { event.preventDefault(); changePassword(); });
 
-// Run automatically on pages that have the greeting element (no inline script needed)
-if (document.getElementById("greeting")) loadMe();
+// Run automatically (no inline script needed): the home page loads the user and the list, the other
+// signed-in pages fill the top bar, and the ticket page also loads its ticket.
+if (document.getElementById("section-title")) loadMe();
+else if (document.getElementById("change-form")) loadChangePasswordPage();
+else if (document.getElementById("nav-user")) loadNav();
 if (document.getElementById("ticket-title")) loadTicket();

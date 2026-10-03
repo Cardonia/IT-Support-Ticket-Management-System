@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>Admin - IT Help Desk</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="dashboard">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <div class="page-head">
+            <h1>Dashboard</h1>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <p class="admin-intro">Everything an administrator can see and change is here. Admin sessions are short on purpose: when yours ends you log in again.</p>
+
+        <section class="dash-group" aria-labelledby="dash-people-title">
+            <h2 id="dash-people-title">People</h2>
+            <ul id="dash-people" class="stat-list"></ul>
+        </section>
+
+        <section class="dash-group" aria-labelledby="dash-tickets-title">
+            <h2 id="dash-tickets-title">Tickets and notes</h2>
+            <ul id="dash-tickets" class="stat-list"></ul>
+        </section>
+
+        <section class="dash-group" aria-labelledby="dash-day-title">
+            <h2 id="dash-day-title">Last 24 hours</h2>
+            <ul id="dash-day" class="stat-list"></ul>
+        </section>
+
+        <div class="dash-lists">
+            <section class="dash-group" aria-labelledby="dash-activity-title">
+                <h2 id="dash-activity-title">Latest activity</h2>
+                <ul id="dash-activity" class="mini-list"></ul>
+                <p class="dash-more"><a href="/admin/activity">All activity</a></p>
+            </section>
+
+            <section class="dash-group" aria-labelledby="dash-users-title">
+                <h2 id="dash-users-title">Newest users</h2>
+                <ul id="dash-users" class="mini-list"></ul>
+                <p class="dash-more"><a href="/admin/users?sort=created%3Adesc">All users</a></p>
+            </section>
+
+            <section class="dash-group" aria-labelledby="dash-newtickets-title">
+                <h2 id="dash-newtickets-title">Newest tickets</h2>
+                <ul id="dash-newtickets" class="mini-list"></ul>
+                <p class="dash-more"><a href="/admin/tickets">All tickets</a></p>
+            </section>
+        </div>
+
+        <section class="dash-group" aria-labelledby="dash-sections-title">
+            <h2 id="dash-sections-title">Sections</h2>
+            <ul id="admin-sections" class="admin-cards"></ul>
+        </section>
+
+        <p class="page-foot"><a href="/change-password.html">Change your password</a></p>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-dashboard.js"></script>
+
+</body>
+
+</html>

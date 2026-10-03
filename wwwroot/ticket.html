@@ -1,51 +1,86 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket</title>
+    <meta name="theme-color" content="#1a56a8">
+    <title>Ticket - IT Help Desk</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="welcome-box">
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        <h2 id="ticket-title"></h2>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="/home.html"><span class="brand-mark" aria-hidden="true">IT</span>IT Help Desk</a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
 
-        <p id="ticket-description" class="ticket-description"></p>
+    <main id="main" class="page">
 
-        <ul id="ticket-details" class="ticket-list"></ul>
+        <a class="back-link" href="/home.html">Back to tickets</a>
 
-        <button id="take-button" hidden>Take Ticket</button>
+        <p id="message" role="alert"></p>
 
-        <button id="resolve-button" hidden>Mark Resolved</button>
+        <div class="page-head">
+            <div>
+                <h1 id="ticket-title"></h1>
+                <div id="ticket-badges" class="badges"></div>
+            </div>
+        </div>
 
-        <div id="notes-box" hidden>
+        <div class="ticket-layout">
 
-            <h3>Notes</h3>
+            <section class="ticket-body">
+                <h2>Description</h2>
+                <div class="panel">
+                    <p id="ticket-description" class="ticket-description"></p>
+                </div>
+            </section>
 
-            <ul id="note-list" class="ticket-list"></ul>
+            <aside class="ticket-side section">
+                <h2>Details</h2>
+                <div class="panel">
+                    <dl id="ticket-details" class="details"></dl>
 
-            <p id="notes-empty"></p>
+                    <div class="actions">
+                        <button id="take-button" class="btn" type="button" hidden>Take ticket</button>
+                        <button id="resolve-button" class="btn" type="button" hidden>Mark as resolved</button>
+                    </div>
+
+                    <p id="action-message" role="alert"></p>
+                </div>
+            </aside>
+
+            <div class="ticket-notes section">
+
+                <div id="notes-box" hidden>
+                    <h2>Notes</h2>
+                    <ul id="note-list" class="note-list"></ul>
+                    <p id="notes-empty" class="note-empty"></p>
+                </div>
+
+                <div id="note-form" class="note-form" hidden>
+                    <label for="note-body">Add a note</label>
+                    <textarea id="note-body" rows="4" maxlength="2000"></textarea>
+                    <button id="note-button" class="btn" type="button">Add note</button>
+                    <p id="note-message" role="alert"></p>
+                </div>
+
+            </div>
 
         </div>
 
-        <div id="note-form" hidden>
-
-            <textarea id="note-body" rows="4" maxlength="2000" placeholder="Write a note"></textarea>
-
-            <button id="note-button">Add Note</button>
-
-        </div>
-
-        <a href="/home.html" class="button">Back</a>
-
-        <p id="message"></p>
-
-    </div>
+    </main>
 
     <script src="script.js"></script>
 

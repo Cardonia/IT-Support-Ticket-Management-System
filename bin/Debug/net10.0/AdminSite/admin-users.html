@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>Users - IT Help Desk Admin</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="users">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <div class="page-head">
+            <h1>Users</h1>
+            <button id="new-user-button" class="btn" type="button" aria-expanded="false" aria-controls="new-user-panel">New user</button>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <!-- New user: the server makes a one-time password and shows it once -->
+        <section id="new-user-panel" class="panel admin-panel" aria-labelledby="new-user-title" hidden>
+            <h2 id="new-user-title">New user</h2>
+            <form id="new-user-form" method="post" novalidate>
+                <div class="field">
+                    <label for="new-username">Username</label>
+                    <input id="new-username" type="text" maxlength="14" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+                    <p class="field-hint">4-14 characters: letters, numbers or underscore.</p>
+                </div>
+                <div class="field">
+                    <label for="new-role">Role</label>
+                    <select id="new-role">
+                        <option value="Employee">Employee</option>
+                        <option value="Technician">Technician</option>
+                    </select>
+                </div>
+                <div class="form-actions form-actions-row">
+                    <button id="new-user-submit" class="btn" type="submit">Create user</button>
+                    <button id="new-user-cancel" class="btn btn-secondary" type="button">Cancel</button>
+                </div>
+                <p id="new-user-message" role="alert"></p>
+            </form>
+        </section>
+
+        <section id="new-user-result" class="panel admin-panel" aria-live="polite" hidden></section>
+
+        <form id="filters" class="filters" role="search" aria-label="Find users" method="get">
+            <div class="field">
+                <label for="filter-q">Search by username</label>
+                <input id="filter-q" type="search" maxlength="50" autocomplete="off" autocapitalize="none" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="filter-role">Role</label>
+                <select id="filter-role">
+                    <option value="">All roles</option>
+                    <option value="Employee">Employee</option>
+                    <option value="Technician">Technician</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filter-status">Status</label>
+                <select id="filter-status">
+                    <option value="">Any status</option>
+                    <option value="active">Active</option>
+                    <option value="disabled">Deactivated</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filter-sort">Sort by</label>
+                <select id="filter-sort">
+                    <option value="name:asc">Name A to Z</option>
+                    <option value="name:desc">Name Z to A</option>
+                    <option value="created:desc">Newest first</option>
+                    <option value="created:asc">Oldest first</option>
+                    <option value="lastlogin:desc">Latest login first</option>
+                    <option value="lastlogin:asc">Oldest login first</option>
+                    <option value="role:asc">Role</option>
+                </select>
+            </div>
+        </form>
+
+        <p id="list-summary" class="list-summary" aria-live="polite"></p>
+
+        <div id="table-wrap" class="table-wrap">
+            <table class="data-table">
+                <caption class="visually-hidden">Users</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">User</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Created</th>
+                        <th scope="col">Last login</th>
+                    </tr>
+                </thead>
+                <tbody id="users-body"></tbody>
+            </table>
+        </div>
+
+        <p id="list-empty" class="empty"></p>
+
+        <nav id="pager" class="pager" aria-label="Pages" hidden>
+            <button id="page-prev" class="btn btn-secondary" type="button">Previous</button>
+            <span id="page-info" class="pager-info"></span>
+            <button id="page-next" class="btn btn-secondary" type="button">Next</button>
+        </nav>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-users.js"></script>
+
+</body>
+
+</html>

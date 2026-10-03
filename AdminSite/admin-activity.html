@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>Activity - IT Help Desk Admin</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="activity">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <div class="page-head">
+            <h1>Activity</h1>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <form id="ac-filters" class="filters" role="search" aria-label="Find activity" method="get">
+            <div class="field">
+                <label for="ac-group">What kind</label>
+                <select id="ac-group">
+                    <option value="">Everything</option>
+                    <option value="auth">Logins and logouts</option>
+                    <option value="user">Account changes</option>
+                    <option value="ticket">Ticket changes</option>
+                    <option value="note">Notes</option>
+                    <option value="admin">Admin actions</option>
+                    <option value="security">Security events</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="ac-action">Exact action</label>
+                <select id="ac-action">
+                    <option value="">Any action</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="ac-user">Person (username)</label>
+                <input id="ac-user" type="text" maxlength="14" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="ac-target-type">About a</label>
+                <select id="ac-target-type">
+                    <option value="">Anything</option>
+                    <option value="user">User</option>
+                    <option value="ticket">Ticket</option>
+                    <option value="note">Note</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="ac-target-id">Number</label>
+                <input id="ac-target-id" type="text" inputmode="numeric" maxlength="18" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="field">
+                <label for="ac-from">From date</label>
+                <input id="ac-from" type="date">
+            </div>
+            <div class="field">
+                <label for="ac-to">To date (included)</label>
+                <input id="ac-to" type="date">
+            </div>
+            <div class="field filters-reset">
+                <button id="ac-reset" class="btn btn-secondary" type="button">Clear filters</button>
+            </div>
+        </form>
+
+        <p id="ac-summary" class="list-summary" aria-live="polite"></p>
+
+        <div id="ac-feed" class="feed"></div>
+
+        <p id="ac-empty" class="empty"></p>
+
+        <div id="ac-more-wrap" class="feed-more" hidden>
+            <button id="ac-more" class="btn btn-secondary" type="button">Show older activity</button>
+        </div>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-activity.js"></script>
+
+</body>
+
+</html>

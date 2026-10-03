@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#3b2f6b">
+    <title>Ticket - IT Help Desk Admin</title>
+    <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body data-admin-page="tickets">
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar topbar-admin">
+        <div class="topbar-inner">
+            <a class="brand" href="/admin"><span class="brand-mark" aria-hidden="true">IT</span><span class="brand-name">IT Help Desk</span> <span class="brand-area">Admin</span></a>
+            <div class="topbar-user">
+                <strong id="nav-user"></strong>
+                <span id="nav-role"></span>
+            </div>
+            <button id="logout-button" class="btn btn-secondary" type="button">Log out</button>
+        </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+        <ul id="admin-nav" class="admin-nav-list"></ul>
+    </nav>
+
+    <main id="main" class="page">
+
+        <a class="back-link" href="/admin/tickets">&larr; All tickets</a>
+
+        <div class="page-head">
+            <h1 id="tk-title">Ticket</h1>
+            <div id="tk-badges" class="badges badges-inline"></div>
+        </div>
+
+        <p id="message" role="alert"></p>
+
+        <p id="tk-deleted-note" class="notice" hidden></p>
+
+        <section class="panel admin-panel" aria-labelledby="tk-details-title">
+            <h2 id="tk-details-title">Details</h2>
+            <dl id="tk-details" class="details"></dl>
+            <h3 class="sub-title">Description</h3>
+            <p id="tk-description" class="ticket-description"></p>
+        </section>
+
+        <section id="tk-actions-panel" class="panel admin-panel" aria-labelledby="tk-actions-title" hidden>
+            <h2 id="tk-actions-title">Actions</h2>
+
+            <form id="edit-form" class="edit-form" method="post" novalidate>
+                <div class="field">
+                    <label for="edit-title">Title</label>
+                    <input id="edit-title" type="text" maxlength="100" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" rows="5" maxlength="2000"></textarea>
+                </div>
+                <div class="field">
+                    <label for="edit-priority">Priority</label>
+                    <select id="edit-priority">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <button id="edit-button" class="btn btn-secondary" type="submit">Save changes</button>
+                <p id="edit-message" role="alert"></p>
+            </form>
+
+            <form id="assign-form" class="inline-form" method="post" novalidate hidden>
+                <div class="field">
+                    <label id="assign-label" for="assign-select">Technician</label>
+                    <select id="assign-select"></select>
+                </div>
+                <button id="assign-button" class="btn btn-secondary" type="submit">Assign</button>
+                <p id="assign-message" role="alert"></p>
+            </form>
+
+            <div id="tk-action-buttons" class="action-row"></div>
+
+            <!-- Unassign / resolve / reopen: says what will happen, then asks once more (no password: these are reversible) -->
+            <form id="confirm-panel" class="confirm" method="post" novalidate hidden>
+                <h3 id="confirm-title"></h3>
+                <p id="confirm-text"></p>
+                <div class="form-actions form-actions-row">
+                    <button id="confirm-button" class="btn" type="submit"></button>
+                    <button id="confirm-cancel" class="btn btn-secondary" type="button">Cancel</button>
+                </div>
+                <p id="confirm-message" role="alert"></p>
+            </form>
+
+            <!-- Delete: the ticket number typed again, and the admin's own password -->
+            <form id="delete-panel" class="confirm" method="post" novalidate hidden>
+                <h3 id="delete-title"></h3>
+                <p id="delete-text"></p>
+                <div class="field">
+                    <label for="delete-number">Ticket number</label>
+                    <input id="delete-number" type="text" inputmode="numeric" autocomplete="off" maxlength="19">
+                    <p class="field-hint" id="delete-number-hint"></p>
+                </div>
+                <div class="field">
+                    <label for="delete-password">Your password</label>
+                    <input id="delete-password" type="password" autocomplete="current-password">
+                    <p class="field-hint">Type your own password to confirm.</p>
+                </div>
+                <div class="form-actions form-actions-row">
+                    <button id="delete-button" class="btn btn-danger" type="submit">Delete ticket</button>
+                    <button id="delete-cancel" class="btn btn-secondary" type="button">Cancel</button>
+                </div>
+                <p id="delete-message" role="alert"></p>
+            </form>
+        </section>
+
+        <section class="panel admin-panel" aria-labelledby="tk-notes-title">
+            <h2 id="tk-notes-title">Technician notes</h2>
+            <p id="tk-notes-summary" class="list-summary"></p>
+            <ul id="tk-notes" class="note-list"></ul>
+            <p id="tk-notes-empty" class="note-empty"></p>
+        </section>
+
+        <section class="panel admin-panel" aria-labelledby="tk-history-title">
+            <h2 id="tk-history-title">History</h2>
+            <ul id="tk-history" class="mini-list"></ul>
+        </section>
+
+    </main>
+
+    <script src="/script.js"></script>
+    <script src="/admin/assets/admin-common.js"></script>
+    <script src="/admin/assets/admin-ticket.js"></script>
+
+</body>
+
+</html>
